@@ -17,8 +17,8 @@ def test_collection_can_be_registered():
 
     # テストで登録する作品情報
     musicbrainz_id = "test-001"
-    artist_name = "Queen"
-    release_name = "A Night at the Opera"
+    artist = "Queen"
+    album = "A Night at the Opera"
 
     # ========================================
     # 実行：コレクションをDBへ登録する
@@ -26,8 +26,8 @@ def test_collection_can_be_registered():
 
     repository.add_collection(
         musicbrainz_id,
-        artist_name,
-        release_name
+        artist,
+        album
     )
 
     # ========================================
@@ -42,6 +42,6 @@ def test_collection_can_be_registered():
 
     assert result == (
         musicbrainz_id,
-        artist_name,
-        release_name
+        artist,
+        album
     )
