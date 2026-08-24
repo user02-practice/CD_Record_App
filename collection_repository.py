@@ -51,7 +51,8 @@ class CollectionRepository:
                 country TEXT,
                 format TEXT,
                 cd_owned INTEGER NOT NULL DEFAULT 0,
-                vinyl_owned INTEGER NOT NULL DEFAULT 0
+                vinyl_owned INTEGER NOT NULL DEFAULT 0,
+                memo TEXT
             )
         """)
 
@@ -68,7 +69,8 @@ class CollectionRepository:
         country,
         formats,
         cd_owned,
-        vinyl_owned
+        vinyl_owned,
+        memo
     ):
         """
         コレクションをDBへ登録する。
@@ -102,6 +104,9 @@ class CollectionRepository:
             vinyl_owned (int):
                 Vinylを所有しているか。
                 0 = 未所有、1 = 所有。
+
+            memo(str):
+            コレクションに関するメモ。
         """
 
         # SQLを実行するためのカーソルを作成する
@@ -121,9 +126,10 @@ class CollectionRepository:
                 country,
                 format,
                 cd_owned,
-                vinyl_owned
+                vinyl_owned,
+                memo
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             musicbrainz_id,
             artist_name,
@@ -133,7 +139,8 @@ class CollectionRepository:
             country,
             format_text,
             cd_owned,
-            vinyl_owned
+            vinyl_owned,
+            memo
         ))
 
         # DBへの変更を確定する
@@ -167,7 +174,8 @@ class CollectionRepository:
                 country,
                 format,
                 cd_owned,
-                vinyl_owned
+                vinyl_owned,
+                memo
             FROM collections
             WHERE musicbrainz_id = ?
         """, (musicbrainz_id,))
@@ -192,7 +200,9 @@ class CollectionRepository:
             result[5],
             formats,
             result[7],
-            result[8]
+            result[8],
+            result[9]
+
         )
 
     def delete_collection(self, musicbrainz_id):

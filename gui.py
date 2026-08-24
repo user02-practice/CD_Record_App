@@ -1,0 +1,225 @@
+import tkinter as tk
+import requests
+from tkinter import ttk, messagebox
+
+from musicbrainz_api import MusicBrainzAPI
+
+
+class MainWindow:
+    """
+    アプリケーションのメイン画面を管理するクラス。
+    """
+
+    def __init__(self, root):
+        """
+        メイン画面を初期化する。
+
+        Args:
+            root (tk.Tk):
+                Tkinterのルートウィンドウ。
+        """
+
+        # メインウィンドウを保存する
+        self.root = root
+        self.search_results = []
+
+        # ウィンドウのタイトルを設定する
+        self.root.title("CD・レコード検索・コレクション管理")
+
+        # ウィンドウのサイズを設定する
+        self.root.geometry("800x600")
+
+        # 画面を作成する
+        self._create_widgets()
+
+    def _create_widgets(self):
+        """
+        メイン画面の部品を作成する。
+        """
+
+        # タイトルラベル
+        title_label = ttk.Label(
+            self.root,
+            text="CD・レコード検索・コレクション管理",
+            font=("Meiryo", 18)
+        )
+
+        # タイトルを配置する
+        title_label.pack(pady=20)
+
+        # 検索対象のラベル
+        target_label = ttk.Label(
+            self.root,
+            text="検索対象"
+        )
+
+        target_label.pack()
+
+        # 検索対象の選択
+        self.search_target = ttk.Combobox(
+            self.root,
+            values=[
+                "アーティスト",
+                "アルバム",
+                "トラック",
+                "キーワード"
+            ],
+            state="readonly"
+        )
+
+        # 初期値を設定する
+        self.search_target.current(0)
+
+        # 検索対象を配置する
+        self.search_target.pack(pady=5)
+
+        # 検索入力欄
+        self.search_entry = ttk.Entry(
+            self.root,
+            width=50
+        )
+
+        # 検索入力欄を配置する
+        self.search_entry.pack(pady=10)
+
+        # 検索ボタン
+        search_button = ttk.Button(
+            self.root,
+            text="検索",
+            command=self.search
+        )
+
+        # 検索ボタンを配置する
+        search_button.pack()
+
+        # 検索結果のラベル
+        result_label = ttk.Label(
+            self.root,
+            text="検索結果"
+        )
+
+        result_label.pack(pady=20)
+
+        # 検索結果を表示するリスト
+        self.result_listbox = tk.Listbox(
+            self.root,
+            width=70,
+            height=20
+        )
+
+        self.result_listbox.bind("<<ListboxSelect>>", self.on_result_selected)
+
+        self.result_listbox.pack()
+
+        self.detail_label = tk.Label(
+            self.root,
+            text="作品情報"
+        )
+
+        self.detail_label.pack()
+
+    def search(self):
+        """
+        検索ボタンが押されたときの処理。
+        """
+
+        # 検索対象を取得する
+        search_target = self.search_target.get()
+
+        # 検索文字を取得する
+        keyword = self.search_entry.get()
+
+        # 検索文字が空の場合
+        if not keyword:
+            return
+
+        # MusicBrainz APIを使用する
+        api = MusicBrainzAPI()
+
+        try:
+            # アーティスト検索
+            if search_target == "アーティスト":
+                result = api.search_artist(keyword)
+
+                # 検索結果を取得する
+                artists = result.get("artists", [])
+                self.search_results = artists
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # 検索結果を画面に表示する
+                for artist in artists:
+                    self.result_listbox.insert(
+                        tk.END,
+                        artist.get("name")
+                    )
+
+        except requests.exceptions.RequestException:
+            print("MusicBrainzへの接続に失敗しました。")
+
+    def on_result_selected(self, event):
+        """
+        検索結果が選択されたときの処理。
+        """
+
+        api = MusicBrainzAPI()
+
+        # 選択された項目の番号を取得する
+        selection = self.result_listbox.curselection()
+
+        # 何も選択されていない場合
+        if not selection:
+            return
+
+        # 選択された番号を取得する
+        index = selection[0]
+
+        # 検索結果から選択されたアーティストを取得する
+        artist = self.search_results[index]
+
+        # MusicBrainz IDを取得する
+        musicbrainz_id = artist.get("id")
+
+        # 確認のためコンソールに表示する
+        print(musicbrainz_id)
+        print(artist.get("name"))
+        try:
+            release_groups = api.search_release_group(artist.get("name"))
+
+        except requests.exceptions.RequestException:
+            messagebox.showerror(
+                "通信エラー",
+                "MusicBrainzへの接続に失敗しました。"
+            )
+            return
+        print(release_groups)
+        print(release_groups.get("release-groups", []))
+
+        release_group_list = release_groups.get("release-groups", [])
+
+        if release_group_list:
+            release_group = release_group_list[0]
+
+            print(release_group.get("title"))
+
+            self.detail_label.config(
+                text=f"作品名：{release_group.get('title')}"
+            )
+def main():
+    """
+    アプリケーションを起動する。
+    """
+
+    # Tkinterのルートウィンドウを作成する
+    root = tk.Tk()
+
+    # メイン画面を作成する
+    MainWindow(root)
+
+    # Tkinterのイベントループを開始する
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()

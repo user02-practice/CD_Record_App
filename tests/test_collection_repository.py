@@ -36,7 +36,8 @@ def test_collection_can_be_registered():
         country,
         formats,
         0,
-        0
+        0,
+        None
     )
 
     # ========================================
@@ -58,7 +59,8 @@ def test_collection_can_be_registered():
         country,
         formats,
         0,
-        0
+        0,
+        None
 
     )
 
@@ -88,7 +90,8 @@ def test_delete_collection():
         None,
         [],
         0,
-        0
+        0,
+        None
 
     )
 
@@ -138,7 +141,8 @@ def test_collection_can_be_registered_with_release_info():
         country,
         formats,
         0,
-        0
+        0,
+        None
     )
 
     result = repository.get_collection(musicbrainz_id)
@@ -152,7 +156,8 @@ def test_collection_can_be_registered_with_release_info():
         country,
         formats,
         0,
-        0
+        0,
+        None
     )
 
 def test_collection_can_be_registered_with_owned_status():
@@ -180,7 +185,8 @@ def test_collection_can_be_registered_with_owned_status():
         country,
         formats,
         cd_owned,
-        vinyl_owned
+        vinyl_owned,
+        None
     )
 
     result = repository.get_collection(musicbrainz_id)
@@ -194,5 +200,51 @@ def test_collection_can_be_registered_with_owned_status():
         country,
         formats,
         cd_owned,
-        vinyl_owned
+        vinyl_owned,
+        None
+    )
+
+def test_collection_can_be_registered_with_memo():
+    """メモを含むコレクションを登録・取得できること"""
+
+    repository = CollectionRepository(":memory:")
+
+    musicbrainz_id = "test-005"
+    artist_name = "Queen"
+    release_name = "A Night at the Opera"
+    label = "EMI"
+    release_date = "1975-11-21"
+    country = "GB"
+    formats = ["CD"]
+
+    cd_owned = 1
+    vinyl_owned = 0
+    memo = "中古で購入。ジャケットに少し傷あり。"
+
+    repository.add_collection(
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label,
+        release_date,
+        country,
+        formats,
+        cd_owned,
+        vinyl_owned,
+        memo
+    )
+
+    result = repository.get_collection(musicbrainz_id)
+
+    assert result == (
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label,
+        release_date,
+        country,
+        formats,
+        cd_owned,
+        vinyl_owned,
+        memo
     )
