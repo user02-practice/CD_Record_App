@@ -49,7 +49,9 @@ class CollectionRepository:
                 label TEXT,
                 release_date TEXT,
                 country TEXT,
-                format TEXT
+                format TEXT,
+                cd_owned INTEGER NOT NULL DEFAULT 0,
+                vinyl_owned INTEGER NOT NULL DEFAULT 0
             )
         """)
 
@@ -64,7 +66,9 @@ class CollectionRepository:
         label,
         release_date,
         country,
-        formats
+        formats,
+        cd_owned,
+        vinyl_owned
     ):
         """
         コレクションをDBへ登録する。
@@ -90,6 +94,14 @@ class CollectionRepository:
 
             formats (list):
                 CDやVinylなどのフォーマット一覧。
+
+            cd_owned (int):
+                CDを所有しているか。
+                0 = 未所有、1 = 所有。
+
+            vinyl_owned (int):
+                Vinylを所有しているか。
+                0 = 未所有、1 = 所有。
         """
 
         # SQLを実行するためのカーソルを作成する
@@ -107,9 +119,11 @@ class CollectionRepository:
                 label,
                 release_date,
                 country,
-                format
+                format,
+                cd_owned,
+                vinyl_owned
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             musicbrainz_id,
             artist_name,
@@ -117,7 +131,9 @@ class CollectionRepository:
             label,
             release_date,
             country,
-            format_text
+            format_text,
+            cd_owned,
+            vinyl_owned
         ))
 
         # DBへの変更を確定する
@@ -149,7 +165,9 @@ class CollectionRepository:
                 label,
                 release_date,
                 country,
-                format
+                format,
+                cd_owned,
+                vinyl_owned
             FROM collections
             WHERE musicbrainz_id = ?
         """, (musicbrainz_id,))
@@ -172,7 +190,9 @@ class CollectionRepository:
             result[3],
             result[4],
             result[5],
-            formats
+            formats,
+            result[7],
+            result[8]
         )
 
     def delete_collection(self, musicbrainz_id):

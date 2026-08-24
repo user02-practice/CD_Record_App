@@ -34,7 +34,9 @@ def test_collection_can_be_registered():
         label,
         release_date,
         country,
-        formats
+        formats,
+        0,
+        0
     )
 
     # ========================================
@@ -54,7 +56,10 @@ def test_collection_can_be_registered():
         label,
         release_date,
         country,
-        formats
+        formats,
+        0,
+        0
+
     )
 
 
@@ -81,7 +86,10 @@ def test_delete_collection():
         None,
         None,
         None,
-        []
+        [],
+        0,
+        0
+
     )
 
 
@@ -128,7 +136,9 @@ def test_collection_can_be_registered_with_release_info():
         label,
         release_date,
         country,
-        formats
+        formats,
+        0,
+        0
     )
 
     result = repository.get_collection(musicbrainz_id)
@@ -140,5 +150,49 @@ def test_collection_can_be_registered_with_release_info():
         label,
         release_date,
         country,
-        formats
+        formats,
+        0,
+        0
+    )
+
+def test_collection_can_be_registered_with_owned_status():
+    """CDとVinylの所有状態を含むコレクションを登録・取得できること"""
+
+    repository = CollectionRepository(":memory:")
+
+    musicbrainz_id = "test-004"
+    artist_name = "Queen"
+    release_name = "A Night at the Opera"
+    label = "EMI"
+    release_date = "1975-11-21"
+    country = "GB"
+    formats = ["CD"]
+
+    cd_owned = 1
+    vinyl_owned = 0
+
+    repository.add_collection(
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label,
+        release_date,
+        country,
+        formats,
+        cd_owned,
+        vinyl_owned
+    )
+
+    result = repository.get_collection(musicbrainz_id)
+
+    assert result == (
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label,
+        release_date,
+        country,
+        formats,
+        cd_owned,
+        vinyl_owned
     )
