@@ -158,22 +158,6 @@ def test_get_releases(mock_get):
     assert result["releases"][0]["id"] == "test-release-id"
     assert result["releases"][0]["title"] == "A Night at the Opera"
 
-def test_get_release_info():
-    """Releaseから発売日と国を取得できること"""
-
-    api = MusicBrainzAPI()
-
-    release = {
-        "id": "test-release-id",
-        "title": "A Night at the Opera",
-        "date": "1975-11-21",
-        "country": "GB"
-    }
-
-    result = api.get_release_info(release)
-
-    assert result["release_date"] == "1975-11-21"
-    assert result["country"] == "GB"
 
 def test_get_release_format():
     """Releaseからフォーマットを取得できること"""
@@ -191,3 +175,63 @@ def test_get_release_format():
     result = api.get_release_format(release)
 
     assert result == ["CD"]
+
+
+def test_get_release_label():
+    """Releaseからレーベルを取得できること"""
+
+    api = MusicBrainzAPI()
+
+    release = {
+        "label-info": [
+            {
+                "label": {
+                    "name": "EMI"
+                }
+            }
+        ]
+    }
+
+    result = api.get_release_label(release)
+
+    assert result == "EMI"
+
+
+def test_get_release_label_returns_none_when_label_does_not_exist():
+    """Releaseにレーベル情報がない場合はNoneを返すこと"""
+
+    api = MusicBrainzAPI()
+
+    release = {
+        "label-info": []
+    }
+
+    result = api.get_release_label(release)
+
+    assert result is None
+
+
+def test_get_release_info():
+    """Releaseから発売日、国、レーベルを取得できること"""
+
+    api = MusicBrainzAPI()
+
+    release = {
+        "id": "test-release-id",
+        "title": "A Night at the Opera",
+        "date": "1975-11-21",
+        "country": "GB",
+        "label-info": [
+            {
+                "label": {
+                    "name": "EMI"
+                }
+            }
+        ]
+    }
+
+    result = api.get_release_info(release)
+
+    assert result["release_date"] == "1975-11-21"
+    assert result["country"] == "GB"
+    assert result["label"] == "EMI"

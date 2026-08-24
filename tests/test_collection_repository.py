@@ -19,6 +19,7 @@ def test_collection_can_be_registered():
     musicbrainz_id = "test-001"
     artist_name = "Queen"
     release_name = "A Night at the Opera"
+    label = None
 
     # ========================================
     # 実行：コレクションをDBへ登録する
@@ -27,7 +28,8 @@ def test_collection_can_be_registered():
     repository.add_collection(
         musicbrainz_id,
         artist_name,
-        release_name
+        release_name,
+        label
     )
 
     # ========================================
@@ -43,27 +45,32 @@ def test_collection_can_be_registered():
     assert result == (
         musicbrainz_id,
         artist_name,
-        release_name
+        release_name,
+        label
     )
 
+
 def test_get_collection_returns_none_when_id_does_not_exist():
-        """存在しないMusicBrainz IDを検索した場合、Noneが返ること"""
-        repository = CollectionRepository(":memory:")
+    """存在しないMusicBrainz IDを検索した場合、Noneが返ること"""
 
-        result = repository.get_collection("not-exist-id")
+    repository = CollectionRepository(":memory:")
 
-        assert result is None
+    result = repository.get_collection("not-exist-id")
+
+    assert result is None
 
 
 def test_delete_collection():
     """登録したコレクションを削除すると、検索結果がNoneになること"""
+
     repository = CollectionRepository(":memory:")
 
     # コレクションを登録
     repository.add_collection(
         "test-001",
         "Queen",
-        "A Night at the Opera"
+        "A Night at the Opera",
+        None
     )
 
     # 削除
@@ -74,14 +81,43 @@ def test_delete_collection():
 
     assert result is None
 
+
 def test_delete_collection_when_id_does_not_exist():
     """存在しないMusicBrainz IDを削除してもエラーにならないこと"""
+
     repository = CollectionRepository(":memory:")
 
     # 存在しないMusicBrainz IDを削除する
     repository.delete_collection("not-exist-id")
 
-    # エラーが発生せず、検索結果がNoneであることを確認する
+    # エラーが発生せず、検索結果がNoneであることを確認
     result = repository.get_collection("not-exist-id")
 
     assert result is None
+
+
+def test_collection_can_be_registered_with_label():
+    """レーベルを含むコレクションをDBへ登録し、取得できること"""
+
+    repository = CollectionRepository(":memory:")
+
+    musicbrainz_id = "test-002"
+    artist_name = "Queen"
+    release_name = "A Night at the Opera"
+    label = "EMI"
+
+    repository.add_collection(
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label
+    )
+
+    result = repository.get_collection(musicbrainz_id)
+
+    assert result == (
+        musicbrainz_id,
+        artist_name,
+        release_name,
+        label
+    )

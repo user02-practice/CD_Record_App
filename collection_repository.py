@@ -45,7 +45,8 @@ class CollectionRepository:
                 id INTEGER PRIMARY KEY,
                 musicbrainz_id TEXT NOT NULL UNIQUE,
                 artist_name TEXT NOT NULL,
-                release_name TEXT NOT NULL
+                release_name TEXT NOT NULL,
+                label TEXT
             )
         """)
 
@@ -56,7 +57,8 @@ class CollectionRepository:
         self,
         musicbrainz_id,
         artist_name,
-        release_name
+        release_name,
+        label
     ):
         """
         コレクションをDBへ登録する。
@@ -70,6 +72,9 @@ class CollectionRepository:
 
             release_name (str):
                 作品名。
+
+            label (str):
+                レーベル名。
         """
 
         # SQLを実行するためのカーソルを作成する
@@ -80,13 +85,15 @@ class CollectionRepository:
             INSERT INTO collections (
                 musicbrainz_id,
                 artist_name,
-                release_name
+                release_name,
+                label
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
         """, (
             musicbrainz_id,
             artist_name,
-            release_name
+            release_name,
+            label
         ))
 
         # DBへの変更を確定する
@@ -114,7 +121,8 @@ class CollectionRepository:
             SELECT
                 musicbrainz_id,
                 artist_name,
-                release_name
+                release_name,
+                label
             FROM collections
             WHERE musicbrainz_id = ?
         """, (musicbrainz_id,))
@@ -127,6 +135,7 @@ class CollectionRepository:
 
     def delete_collection(self, musicbrainz_id):
         """指定したMusicBrainz IDのコレクションを削除する"""
+
         self.conn.execute(
             """
             DELETE FROM collections

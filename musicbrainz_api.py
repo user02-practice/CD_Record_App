@@ -182,12 +182,13 @@ class MusicBrainzAPI:
 
         Returns:
             dict:
-                発売日と国。
+                発売日、国、レーベル
         """
 
         return {
             "release_date": release["date"],
-            "country": release["country"]
+            "country": release["country"],
+            "label": self.get_release_label(release)
         }
 
     def get_release_format(self, release):
@@ -208,3 +209,18 @@ class MusicBrainzAPI:
             for medium in release["media"]
             if medium.get("format")
         ]
+
+    def get_release_label(self, release):
+        """Releaseからレーベルを取得する"""
+
+        label_info = release.get("label-info", [])
+
+        if not label_info:
+            return None
+
+        label = label_info[0].get("label")
+
+        if not label:
+            return None
+
+        return label.get("name")
