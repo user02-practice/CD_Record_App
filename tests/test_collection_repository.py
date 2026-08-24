@@ -45,3 +45,43 @@ def test_collection_can_be_registered():
         artist_name,
         release_name
     )
+
+def test_get_collection_returns_none_when_id_does_not_exist():
+        """存在しないMusicBrainz IDを検索した場合、Noneが返ること"""
+        repository = CollectionRepository(":memory:")
+
+        result = repository.get_collection("not-exist-id")
+
+        assert result is None
+
+
+def test_delete_collection():
+    """登録したコレクションを削除すると、検索結果がNoneになること"""
+    repository = CollectionRepository(":memory:")
+
+    # コレクションを登録
+    repository.add_collection(
+        "test-001",
+        "Queen",
+        "A Night at the Opera"
+    )
+
+    # 削除
+    repository.delete_collection("test-001")
+
+    # 削除後は存在しないことを確認
+    result = repository.get_collection("test-001")
+
+    assert result is None
+
+def test_delete_collection_when_id_does_not_exist():
+    """存在しないMusicBrainz IDを削除してもエラーにならないこと"""
+    repository = CollectionRepository(":memory:")
+
+    # 存在しないMusicBrainz IDを削除する
+    repository.delete_collection("not-exist-id")
+
+    # エラーが発生せず、検索結果がNoneであることを確認する
+    result = repository.get_collection("not-exist-id")
+
+    assert result is None

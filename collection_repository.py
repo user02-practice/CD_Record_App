@@ -124,3 +124,15 @@ class CollectionRepository:
 
         # 取得した結果を返す
         return result
+
+    def delete_collection(self, musicbrainz_id):
+        """指定したMusicBrainz IDのコレクションを削除する"""
+        self.conn.execute(
+            """
+            DELETE FROM collections
+            WHERE musicbrainz_id = ?
+            """,
+            (musicbrainz_id,)
+        )
+
+        self.conn.commit()
