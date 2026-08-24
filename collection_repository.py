@@ -46,7 +46,10 @@ class CollectionRepository:
                 musicbrainz_id TEXT NOT NULL UNIQUE,
                 artist_name TEXT NOT NULL,
                 release_name TEXT NOT NULL,
-                label TEXT
+                label TEXT,
+                release_date TEXT,
+                country TEXT,
+                format TEXT
             )
         """)
 
@@ -58,7 +61,10 @@ class CollectionRepository:
         musicbrainz_id,
         artist_name,
         release_name,
-        label
+        label,
+        release_date,
+        country,
+        formats
     ):
         """
         コレクションをDBへ登録する。
@@ -75,10 +81,22 @@ class CollectionRepository:
 
             label (str):
                 レーベル名。
+
+            release_date (str):
+                発売日。
+
+            country (str):
+                発売国。
+
+            formats (list):
+                CDやVinylなどのフォーマット一覧。
         """
 
         # SQLを実行するためのカーソルを作成する
         cursor = self.conn.cursor()
+
+        # PythonのリストをSQLite保存用の文字列へ変換する
+        format_text = ",".join(formats)
 
         # コレクションをDBへ登録する
         cursor.execute("""
@@ -86,14 +104,20 @@ class CollectionRepository:
                 musicbrainz_id,
                 artist_name,
                 release_name,
-                label
+                label,
+                release_date,
+                country,
+                format
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             musicbrainz_id,
             artist_name,
             release_name,
-            label
+            label,
+            release_date,
+            country,
+            format_text
         ))
 
         # DBへの変更を確定する
@@ -122,7 +146,10 @@ class CollectionRepository:
                 musicbrainz_id,
                 artist_name,
                 release_name,
-                label
+                label,
+                release_date,
+                country,
+                format
             FROM collections
             WHERE musicbrainz_id = ?
         """, (musicbrainz_id,))
@@ -130,8 +157,23 @@ class CollectionRepository:
         # 検索結果を1件取得する
         result = cursor.fetchone()
 
-        # 取得した結果を返す
-        return result
+        # コレクションが存在しない場合
+        if result is None:
+            return None
+
+        # DBから取得したformatをPythonのリストへ戻す
+        formats = result[6].split(",") if result[6] else []
+
+        # tupleを作り直して返す
+        return (
+            result[0],
+            result[1],
+            result[2],
+            result[3],
+            result[4],
+            result[5],
+            formats
+        )
 
     def delete_collection(self, musicbrainz_id):
         """指定したMusicBrainz IDのコレクションを削除する"""

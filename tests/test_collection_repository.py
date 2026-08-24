@@ -20,7 +20,9 @@ def test_collection_can_be_registered():
     artist_name = "Queen"
     release_name = "A Night at the Opera"
     label = None
-
+    release_date = None
+    country = None
+    formats = []
     # ========================================
     # 実行：コレクションをDBへ登録する
     # ========================================
@@ -29,7 +31,10 @@ def test_collection_can_be_registered():
         musicbrainz_id,
         artist_name,
         release_name,
-        label
+        label,
+        release_date,
+        country,
+        formats
     )
 
     # ========================================
@@ -46,7 +51,10 @@ def test_collection_can_be_registered():
         musicbrainz_id,
         artist_name,
         release_name,
-        label
+        label,
+        release_date,
+        country,
+        formats
     )
 
 
@@ -70,8 +78,12 @@ def test_delete_collection():
         "test-001",
         "Queen",
         "A Night at the Opera",
-        None
+        None,
+        None,
+        None,
+        []
     )
+
 
     # 削除
     repository.delete_collection("test-001")
@@ -96,21 +108,27 @@ def test_delete_collection_when_id_does_not_exist():
     assert result is None
 
 
-def test_collection_can_be_registered_with_label():
-    """レーベルを含むコレクションをDBへ登録し、取得できること"""
+def test_collection_can_be_registered_with_release_info():
+    """発売情報を含むコレクションをDBへ登録し、取得できること"""
 
     repository = CollectionRepository(":memory:")
 
-    musicbrainz_id = "test-002"
+    musicbrainz_id = "test-003"
     artist_name = "Queen"
     release_name = "A Night at the Opera"
     label = "EMI"
+    release_date = "1975-11-21"
+    country = "GB"
+    formats = ["CD"]
 
     repository.add_collection(
         musicbrainz_id,
         artist_name,
         release_name,
-        label
+        label,
+        release_date,
+        country,
+        formats
     )
 
     result = repository.get_collection(musicbrainz_id)
@@ -119,5 +137,8 @@ def test_collection_can_be_registered_with_label():
         musicbrainz_id,
         artist_name,
         release_name,
-        label
+        label,
+        release_date,
+        country,
+        formats
     )
