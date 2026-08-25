@@ -402,6 +402,83 @@ class MainWindow:
         # 選択されたコレクションを返す
         return collections[index]
 
+    def show_collection_edit(self):
+        """
+        選択されているコレクションの編集画面を表示する。
+        """
+
+        # 選択されているコレクションを取得する
+        collection = self.get_selected_collection()
+
+        # コレクションが選択されていない場合
+        if collection is None:
+            return
+
+        # ========================================
+        # 編集用の値を作成する
+        # ========================================
+
+        self.cd_owned_var = tk.BooleanVar(
+            value=bool(collection[7])
+        )
+
+        self.vinyl_owned_var = tk.BooleanVar(
+            value=bool(collection[8])
+        )
+
+        # ========================================
+        # CD所有チェックボックス
+        # ========================================
+
+        self.cd_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="CD所有",
+            variable=self.cd_owned_var
+        )
+
+        self.cd_owned_checkbutton.pack()
+
+        # ========================================
+        # Vinyl所有チェックボックス
+        # ========================================
+
+        self.vinyl_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="Vinyl所有",
+            variable=self.vinyl_owned_var
+        )
+
+        self.vinyl_owned_checkbutton.pack()
+
+        # ========================================
+        # メモ入力欄
+        # ========================================
+
+        self.memo_entry = ttk.Entry(
+            self.root,
+            width=50
+        )
+
+        self.memo_entry.pack()
+
+        # 既存のメモを設定する
+        self.memo_entry.insert(
+            0,
+            collection[9] or ""
+        )
+
+        # ========================================
+        # 更新ボタン
+        # ========================================
+
+        self.update_button = ttk.Button(
+            self.root,
+            text="更新",
+            command=self.update_collection
+        )
+
+        self.update_button.pack()
+
     def show_selected_collection_detail(self):
         """
         選択されているコレクションの詳細を表示する。
@@ -417,12 +494,61 @@ class MainWindow:
         # コレクション情報を取得する
         artist_name = collection[1]
         release_name = collection[2]
+        cd_owned = collection[7]
+        vinyl_owned = collection[8]
+        memo = collection[9]
+
+        # 所有状態を表示用の文字列に変換する
+        cd_owned_text = "あり" if cd_owned else "なし"
+        vinyl_owned_text = "あり" if vinyl_owned else "なし"
 
         # 詳細欄に作品情報を表示する
         self.detail_label.config(
             text=f"アーティスト：{artist_name}\n"
-                 f"作品名：{release_name}"
+                 f"作品名：{release_name}\n"
+                 f"CD所有：{cd_owned_text}\n"
+                 f"Vinyl所有：{vinyl_owned_text}\n"
+                 f"メモ：{memo or ''}"
         )
+
+
+    def update_collection(self):
+        """
+        編集画面で入力された内容を使って
+        コレクションを更新する。
+        """
+
+        # ========================================
+        # 選択されているコレクションを取得する
+        # ========================================
+
+        collection = self.get_selected_collection()
+
+        # コレクションが選択されていない場合
+        if collection is None:
+            return
+
+        # ========================================
+        # 編集画面から値を取得する
+        # ========================================
+
+        cd_owned = self.cd_owned_var.get()
+        vinyl_owned = self.vinyl_owned_var.get()
+        memo = self.memo_entry.get()
+
+        # ========================================
+        # Repositoryを使って更新する
+        # ========================================
+
+        self.repository.update_collection(
+            musicbrainz_id=collection[0],
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned,
+            memo=memo
+        )
+
+        # 詳細表示を更新する
+        self.show_selected_collection_detail()
 
 
 def main():

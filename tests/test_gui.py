@@ -765,3 +765,415 @@ def test_selected_collection_name_is_displayed_in_detail():
     # ========================================
 
     root.destroy()
+
+def test_collection_edit_controls_exist():
+    """
+    コレクションの編集画面を開くと、
+    CD所有、Vinyl所有、メモの編集部品が存在することを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：コレクション一覧を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 編集画面を開く
+    window.show_collection_edit()
+
+    # ========================================
+    # 確認：編集部品が存在する
+    # ========================================
+
+    assert hasattr(window, "cd_owned_var")
+    assert hasattr(window, "vinyl_owned_var")
+    assert hasattr(window, "memo_entry")
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_collection_edit_controls_show_current_values():
+    """
+    コレクションの編集画面を開くと、
+    現在のCD所有、Vinyl所有、メモが
+    編集部品に正しく設定されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：コレクション一覧を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 編集画面を開く
+    window.show_collection_edit()
+
+    # ========================================
+    # 確認：現在の値が読み込まれている
+    # ========================================
+
+    assert window.cd_owned_var.get() is True
+    assert window.vinyl_owned_var.get() is False
+    assert window.memo_entry.get() == "名盤"
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_collection_can_be_updated_from_edit_screen():
+    """
+    編集画面でCD所有、Vinyl所有、メモを変更して更新すると、
+    コレクションが正しく更新されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # コレクション一覧を表示する
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 編集画面を開く
+    window.show_collection_edit()
+
+    # ========================================
+    # 実行：編集内容を変更する
+    # ========================================
+
+    window.cd_owned_var.set(False)
+    window.vinyl_owned_var.set(True)
+
+    window.memo_entry.delete(0, tk.END)
+    window.memo_entry.insert(0, "買い直したい")
+
+    # 更新する
+    window.update_collection()
+
+    # ========================================
+    # 確認：Repositoryのデータが更新されている
+    # ========================================
+
+    collection = repository.get_collection("test-001")
+
+    assert collection[7] == 0
+    assert collection[8] == 1
+    assert collection[9] == "買い直したい"
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_collection_edit_screen_has_update_button():
+    """
+    コレクション編集画面に更新ボタンが存在することを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：編集画面を開く
+    # ========================================
+
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 編集画面を開く
+    window.show_collection_edit()
+
+    # ========================================
+    # 確認：更新ボタンが存在する
+    # ========================================
+
+    assert hasattr(window, "update_button")
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_updated_collection_is_reflected_in_detail():
+    """
+    コレクションを更新したあと、
+    詳細表示に更新後の所有状態とメモが反映されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # コレクション一覧を表示する
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # ========================================
+    # 実行：編集画面を開く
+    # ========================================
+
+    window.show_collection_edit()
+
+    # 編集内容を変更する
+    window.cd_owned_var.set(False)
+    window.vinyl_owned_var.set(True)
+
+    window.memo_entry.delete(0, tk.END)
+    window.memo_entry.insert(0, "買い直したい")
+
+    # コレクションを更新する
+    window.update_collection()
+
+    # 詳細表示を更新する
+    window.show_selected_collection_detail()
+
+    # ========================================
+    # 確認：更新後の内容が詳細に表示される
+    # ========================================
+
+    detail_text = window.detail_label.cget("text")
+
+    assert "アーティスト：Queen" in detail_text
+    assert "作品名：A Night at the Opera" in detail_text
+    assert "CD所有：なし" in detail_text
+    assert "Vinyl所有：あり" in detail_text
+    assert "メモ：買い直したい" in detail_text
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_update_collection_refreshes_detail():
+    """
+    コレクションを更新すると、
+    詳細表示も自動的に更新されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.show_collections()
+
+    # 1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 編集画面を開く
+    window.show_collection_edit()
+
+    # ========================================
+    # 実行：編集内容を変更する
+    # ========================================
+
+    window.cd_owned_var.set(False)
+    window.vinyl_owned_var.set(True)
+
+    window.memo_entry.delete(0, tk.END)
+    window.memo_entry.insert(0, "買い直したい")
+
+    # 更新する
+    window.update_collection()
+
+    # ========================================
+    # 確認：詳細表示が自動的に更新される
+    # ========================================
+
+    detail_text = window.detail_label.cget("text")
+
+    assert "アーティスト：Queen" in detail_text
+    assert "作品名：A Night at the Opera" in detail_text
+    assert "CD所有：なし" in detail_text
+    assert "Vinyl所有：あり" in detail_text
+    assert "メモ：買い直したい" in detail_text
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
