@@ -349,13 +349,31 @@ class MainWindow:
                 vinyl_owned=True
             )
 
+
         elif filter_value == "CD・Vinyl両方所有":
+
             self.filter_collection_list(
+
                 cd_owned=True,
+
                 vinyl_owned=True
+
             )
 
+
+        elif filter_value == "どちらも未所有":
+
+            self.filter_collection_list(
+
+                cd_owned=False,
+
+                vinyl_owned=False
+
+            )
+
+
         else:
+
             self.filter_collection_list()
 
 

@@ -560,3 +560,69 @@ def test_collection_filter_selection_updates_list_for_both_owned(root):
     assert len(items) == 1
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
+
+def test_collection_filter_selection_updates_list_for_none_owned():
+    """
+    GUIで「どちらも未所有」を選択すると、
+    CDとVinylのどちらも所有していないコレクションだけが表示されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Pink Floyd",
+        release_name="The Dark Side of the Moon",
+        label="Harvest",
+        release_date="1973-03-01",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.collection_filter.set("どちらも未所有")
+
+    window.on_collection_filter_changed()
+
+    items = window.collection_listbox.get(0, tk.END)
+
+    assert len(items) == 1
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[0]
+
+    root.destroy()
