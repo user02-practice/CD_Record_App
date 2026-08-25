@@ -418,3 +418,847 @@ def test_collection_can_be_updated_to_own_both_formats():
         1,
         "CDとVinylの両方を所有"
     )
+
+def test_collections_can_be_searched_by_keyword():
+    """
+    アーティスト名や作品名に含まれるキーワードで
+    コレクションを検索できることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # テスト用データを登録
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：Queenで検索
+    # ========================================
+
+    results = repository.search_collections("Queen")
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 2
+
+    assert results[0][0] == "test-001"
+    assert results[1][0] == "test-003"
+
+
+def test_collections_can_be_searched_by_release_name():
+    """
+    作品名に含まれるキーワードで
+    コレクションを検索できることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # テスト用データを登録
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：作品名で検索
+    # ========================================
+
+    results = repository.search_collections("Abbey Road")
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-002"
+    assert results[0][1] == "The Beatles"
+    assert results[0][2] == "Abbey Road"
+
+def test_collections_can_be_searched_by_partial_keyword():
+    """
+    アーティスト名や作品名の一部を指定して
+    コレクションを検索できることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：一部のキーワードで検索
+    # ========================================
+
+    results = repository.search_collections("Beat")
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-002"
+    assert results[0][1] == "The Beatles"
+
+def test_search_collections_returns_empty_list_when_no_match():
+    """
+    検索キーワードに一致するコレクションが存在しない場合、
+    空のリストが返ることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：存在しないキーワードで検索
+    # ========================================
+
+    results = repository.search_collections("Michael Jackson")
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert results == []
+
+def test_search_collections_returns_all_collections_when_keyword_is_empty():
+    """
+    検索キーワードが空文字の場合、
+    すべてのコレクションが返ることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：空文字で検索
+    # ========================================
+
+    results = repository.search_collections("")
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 3
+
+    assert results[0][0] == "test-001"
+    assert results[1][0] == "test-002"
+    assert results[2][0] == "test-003"
+
+def test_collections_can_be_filtered_by_cd_owned():
+    """
+    CDを所有しているコレクションだけを
+    絞り込んで取得できることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：CD所有で絞り込み
+    # ========================================
+
+    results = repository.get_collections_by_cd_owned()
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 2
+
+    assert results[0][0] == "test-001"
+    assert results[1][0] == "test-002"
+
+def test_collections_can_be_filtered_by_vinyl_owned():
+    """
+    Vinylを所有しているコレクションだけを
+    絞り込んで取得できることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：Vinyl所有で絞り込み
+    # ========================================
+
+    results = repository.get_collections_by_vinyl_owned()
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 2
+
+    assert results[0][0] == "test-002"
+    assert results[1][0] == "test-003"
+
+def test_get_collections_by_cd_owned_returns_empty_list_when_no_match():
+    """
+    CDを所有しているコレクションが存在しない場合、
+    空のリストが返ることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：CD所有で絞り込み
+    # ========================================
+
+    results = repository.get_collections_by_cd_owned()
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert results == []
+
+def test_get_collections_by_vinyl_owned_returns_empty_list_when_no_match():
+    """
+    Vinylを所有しているコレクションが存在しない場合、
+    空のリストが返ることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：Vinyl所有で絞り込み
+    # ========================================
+
+    results = repository.get_collections_by_vinyl_owned()
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert results == []
+
+def test_collections_can_be_filtered_by_keyword_and_cd_owned():
+    """
+    キーワードとCD所有状態を組み合わせて
+    コレクションを絞り込めることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：Queen + CD所有で絞り込み
+    # ========================================
+
+    results = repository.filter_collections(
+        keyword="Queen",
+        cd_owned=True
+    )
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-001"
+
+def test_collections_can_be_filtered_by_keyword_and_vinyl_owned():
+    """
+    キーワードとVinyl所有状態を組み合わせて
+    コレクションを絞り込めることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：Queen + Vinyl所有で絞り込み
+    # ========================================
+
+    results = repository.filter_collections(
+        keyword="Queen",
+        vinyl_owned=True
+    )
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-002"
+
+def test_collections_can_be_filtered_by_cd_and_vinyl_owned():
+    """
+    CDとVinylの両方を所有しているコレクションだけを
+    絞り込めることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Pink Floyd",
+        release_name="The Dark Side of the Moon",
+        label="Harvest",
+        release_date="1973-03-01",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：CD + Vinyl所有で絞り込み
+    # ========================================
+
+    results = repository.filter_collections(
+        cd_owned=True,
+        vinyl_owned=True
+    )
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-002"
+
+def test_collections_can_be_filtered_by_neither_cd_nor_vinyl_owned():
+    """
+    CDもVinylも所有していないコレクションだけを
+    絞り込めることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Pink Floyd",
+        release_name="The Dark Side of the Moon",
+        label="Harvest",
+        release_date="1973-03-01",
+        country="GB",
+        formats=["Vinyl"],
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-004",
+        artist_name="David Bowie",
+        release_name="Low",
+        label="RCA",
+        release_date="1977-01-14",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：CDもVinylも未所有で絞り込み
+    # ========================================
+
+    results = repository.filter_collections(
+        cd_owned=False,
+        vinyl_owned=False
+    )
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-004"
+
+
+def test_filter_collections_returns_all_collections_when_no_conditions():
+    """
+    検索条件を指定しなかった場合、
+    すべてのコレクションが返ることを確認するテスト。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：条件なしで絞り込み
+    # ========================================
+
+    results = repository.filter_collections()
+
+    # ========================================
+    # 検証
+    # ========================================
+
+    assert len(results) == 2
+    assert results[0][0] == "test-001"
+    assert results[1][0] == "test-002"

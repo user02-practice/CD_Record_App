@@ -261,6 +261,179 @@ class CollectionRepository:
 
         return collections
 
+    def get_collections_by_cd_owned(self):
+        """
+        CDを所有しているコレクションだけを取得する。
+
+        Returns:
+            list:
+                CDを所有しているコレクションの一覧。
+        """
+
+        # SQLを実行するためのカーソルを作成する
+        cursor = self.conn.cursor()
+
+        # CDを所有しているコレクションを取得する
+        cursor.execute("""
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+            WHERE cd_owned = 1
+            ORDER BY id
+        """)
+
+        # 検索結果をすべて取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],
+                result[8],
+                result[9]
+            ))
+
+        return collections
+
+    def get_collections_by_vinyl_owned(self):
+        """
+        Vinylを所有しているコレクションだけを取得する。
+
+        Returns:
+            list:
+                Vinylを所有しているコレクションの一覧。
+        """
+
+        # SQLを実行するためのカーソルを作成する
+        cursor = self.conn.cursor()
+
+        # Vinylを所有しているコレクションを取得する
+        cursor.execute("""
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+            WHERE vinyl_owned = 1
+            ORDER BY id
+        """)
+
+        # 検索結果をすべて取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],
+                result[8],
+                result[9]
+            ))
+
+        return collections
+
+    def search_collections(self, keyword):
+        """
+        アーティスト名または作品名からコレクションを検索する。
+
+        Args:
+            keyword (str):
+                検索するキーワード。
+
+        Returns:
+            list:
+                キーワードに一致するコレクションの一覧。
+        """
+
+        # SQLを実行するためのカーソルを作成する
+        cursor = self.conn.cursor()
+
+        # アーティスト名または作品名を部分一致で検索する
+        cursor.execute("""
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+            WHERE artist_name LIKE ?
+               OR release_name LIKE ?
+            ORDER BY id
+        """, (
+            f"%{keyword}%",
+            f"%{keyword}%"
+        ))
+
+        # 検索結果をすべて取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],
+                result[8],
+                result[9]
+            ))
+
+        return collections
+
     def update_collection(
         self,
         musicbrainz_id,
@@ -320,3 +493,102 @@ class CollectionRepository:
         )
 
         self.conn.commit()
+
+    def filter_collections(self, keyword="", cd_owned=None, vinyl_owned=None):
+        """
+        キーワードとCD/Vinyl所有状態を組み合わせて
+        コレクションを絞り込む。
+
+        Args:
+            keyword (str):
+                アーティスト名または作品名の検索キーワード。
+
+            cd_owned (bool or None):
+                CD所有状態。
+                True = 所有、False = 未所有、None = 条件なし。
+
+            vinyl_owned (bool or None):
+                Vinyl所有状態。
+                True = 所有、False = 未所有、None = 条件なし。
+
+        Returns:
+            list:
+                条件に一致するコレクションの一覧。
+        """
+
+        # SQLの条件を入れるリスト
+        conditions = []
+
+        # SQLへ渡す値を入れるリスト
+        parameters = []
+
+        # キーワードが指定されている場合
+        if keyword:
+            conditions.append(
+                "(artist_name LIKE ? OR release_name LIKE ?)"
+            )
+
+            parameters.append(f"%{keyword}%")
+            parameters.append(f"%{keyword}%")
+
+        # CD所有状態が指定されている場合
+        if cd_owned is not None:
+            conditions.append("cd_owned = ?")
+            parameters.append(1 if cd_owned else 0)
+
+        # Vinyl所有状態が指定されている場合
+        if vinyl_owned is not None:
+            conditions.append("vinyl_owned = ?")
+            parameters.append(1 if vinyl_owned else 0)
+
+        # SQLを作成する
+        sql = """
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+        """
+
+        # 条件がある場合はWHERE句を追加する
+        if conditions:
+            sql += " WHERE " + " AND ".join(conditions)
+
+        # 登録順で並べる
+        sql += " ORDER BY id"
+
+        # SQLを実行する
+        cursor = self.conn.cursor()
+        cursor.execute(sql, parameters)
+
+        # 検索結果を取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],
+                result[8],
+                result[9]
+            ))
+
+        return collections
