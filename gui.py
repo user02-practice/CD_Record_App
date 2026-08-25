@@ -10,7 +10,7 @@ class MainWindow:
     アプリケーションのメイン画面を管理するクラス。
     """
 
-    def __init__(self, root,repository=None):
+    def __init__(self, root, repository=None):
         """
         メイン画面を初期化する。
 
@@ -48,7 +48,6 @@ class MainWindow:
             font=("Meiryo", 18)
         )
 
-        # タイトルを配置する
         title_label.pack(pady=20)
 
         # 検索対象のラベル
@@ -83,7 +82,6 @@ class MainWindow:
             width=50
         )
 
-        # 検索入力欄を配置する
         self.search_entry.pack(pady=10)
 
         # 検索ボタン
@@ -93,7 +91,6 @@ class MainWindow:
             command=self.search
         )
 
-        # 検索ボタンを配置する
         search_button.pack()
 
         # 検索結果のラベル
@@ -111,16 +108,65 @@ class MainWindow:
             height=20
         )
 
-        self.result_listbox.bind("<<ListboxSelect>>", self.on_result_selected)
+        self.result_listbox.bind(
+            "<<ListboxSelect>>",
+            self.on_result_selected
+        )
 
         self.result_listbox.pack()
 
+        # 作品情報
         self.detail_label = tk.Label(
             self.root,
             text="作品情報"
         )
 
         self.detail_label.pack()
+
+        # ========================================
+        # コレクション検索
+        # ========================================
+
+        # コレクション検索ラベル
+        collection_search_label = ttk.Label(
+            self.root,
+            text="コレクション検索"
+        )
+
+        collection_search_label.pack(pady=5)
+
+        # コレクション検索入力欄
+        self.collection_search_entry = ttk.Entry(
+            self.root,
+            width=50
+        )
+
+        self.collection_search_entry.pack(pady=5)
+
+        # コレクション所有フィルター
+        self.collection_filter = ttk.Combobox(
+            self.root,
+            values=[
+                "すべて",
+                "CD所有",
+                "Vinyl所有",
+                "CD・Vinyl両方所有",
+                "どちらも未所有"
+            ],
+            state="readonly"
+        )
+
+        # 初期値は「すべて」
+        self.collection_filter.current(0)
+
+        # フィルターを配置する
+        self.collection_filter.pack(pady=5)
+
+        # フィルターが変更されたときの処理
+        self.collection_filter.bind(
+            "<<ComboboxSelected>>",
+            self.on_collection_filter_changed
+        )
 
         # コレクション一覧を表示するリスト
         self.collection_listbox = tk.Listbox(
@@ -171,7 +217,6 @@ class MainWindow:
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
 
-
     def show_collections(self):
         """
         Repositoryからコレクションを取得し、
@@ -197,17 +242,18 @@ class MainWindow:
                 f"{artist_name} - {release_name}"
             )
 
-    def filter_collection_list(self, keyword="",cd_owned=None,vinyl_owned=None):
+    def filter_collection_list(
+        self,
+        keyword="",
+        cd_owned=None,
+        vinyl_owned=None
+    ):
         """
-        キーワードでコレクションを絞り込み、
+        キーワードと所有状態でコレクションを絞り込み、
         GUIの一覧に表示する。
-
-        Args:
-            keyword (str):
-                アーティスト名または作品名の検索キーワード。
         """
 
-        # キーワードを使ってコレクションを検索する
+        # キーワードと所有状態を使ってコレクションを検索する
         collections = self.repository.filter_collections(
             keyword=keyword,
             cd_owned=cd_owned,
@@ -229,8 +275,6 @@ class MainWindow:
                 tk.END,
                 f"{artist_name} - {release_name}"
             )
-
-
 
     def on_result_selected(self, event):
         """
@@ -258,8 +302,11 @@ class MainWindow:
         # 確認のためコンソールに表示する
         print(musicbrainz_id)
         print(artist.get("name"))
+
         try:
-            release_groups = api.search_release_group(artist.get("name"))
+            release_groups = api.search_release_group(
+                artist.get("name")
+            )
 
         except requests.exceptions.RequestException:
             messagebox.showerror(
@@ -267,10 +314,14 @@ class MainWindow:
                 "MusicBrainzへの接続に失敗しました。"
             )
             return
+
         print(release_groups)
         print(release_groups.get("release-groups", []))
 
-        release_group_list = release_groups.get("release-groups", [])
+        release_group_list = release_groups.get(
+            "release-groups",
+            []
+        )
 
         if release_group_list:
             release_group = release_group_list[0]
@@ -280,6 +331,34 @@ class MainWindow:
             self.detail_label.config(
                 text=f"作品名：{release_group.get('title')}"
             )
+
+    def on_collection_filter_changed(self, event=None):
+        """
+        コレクションの所有フィルターが変更されたときの処理。
+        """
+
+        filter_value = self.collection_filter.get()
+
+        if filter_value == "CD所有":
+            self.filter_collection_list(
+                cd_owned=True
+            )
+
+        elif filter_value == "Vinyl所有":
+            self.filter_collection_list(
+                vinyl_owned=True
+            )
+
+        elif filter_value == "CD・Vinyl両方所有":
+            self.filter_collection_list(
+                cd_owned=True,
+                vinyl_owned=True
+            )
+
+        else:
+            self.filter_collection_list()
+
+
 def main():
     """
     アプリケーションを起動する。
