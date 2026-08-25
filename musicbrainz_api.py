@@ -22,7 +22,7 @@ class MusicBrainzAPI:
 
         Returns:
             dict:
-                MusicBrainz APIから取得した検索結果。
+                検索したアーティストの情報。
         """
 
         url = "https://musicbrainz.org/ws/2/artist/"
@@ -46,7 +46,19 @@ class MusicBrainzAPI:
 
         response.raise_for_status()
 
-        return response.json()
+        result = response.json()
+
+        # 検索結果から、名前が一致するGroupを探す
+        for artist in result.get("artists", []):
+            if (
+                    artist.get("name") == artist_name
+                    and artist.get("type") == "Group"
+            ):
+                result["artists"].remove(artist)
+                result["artists"].insert(0, artist)
+                break
+
+        return result
 
     def search_release_group(self, release_group_name):
         """

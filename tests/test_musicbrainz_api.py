@@ -235,3 +235,59 @@ def test_get_release_info():
     assert result["release_date"] == "1975-11-21"
     assert result["country"] == "GB"
     assert result["label"] == "EMI"
+
+@patch("musicbrainz_api.requests.get")
+def test_search_artist_uses_artist_query(mock_get):
+    """Artist検索ではartist検索条件を使用すること"""
+
+    # APIから返ってくるデータを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "artists": []
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    api.search_artist("Queen")
+
+    # requests.getが呼び出されたことを確認する
+    mock_get.assert_called_once()
+
+    # requests.getに渡された引数を確認する
+    _, kwargs = mock_get.call_args
+
+    assert kwargs["params"]["query"] == "artist:Queen"
+
+@patch("musicbrainz_api.requests.get")
+def test_search_artist_returns_queen_band(mock_get):
+    """Queenを検索するとQueenというバンドを取得できること"""
+
+    # MusicBrainzから複数のQueenが返ってくるケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "artists": [
+            {
+                "id": "other-queen-id",
+                "name": "Queen",
+                "type": "Person"
+            },
+            {
+                "id": "queen-band-id",
+                "name": "Queen",
+                "type": "Group"
+            }
+        ]
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_artist("Queen")
+
+    # Queenというバンドが取得できること
+    assert result["artists"][0]["id"] == "queen-band-id"
+    assert result["artists"][0]["name"] == "Queen"
+    assert result["artists"][0]["type"] == "Group"
