@@ -10,7 +10,7 @@ class MainWindow:
     アプリケーションのメイン画面を管理するクラス。
     """
 
-    def __init__(self, root):
+    def __init__(self, root,repository=None):
         """
         メイン画面を初期化する。
 
@@ -21,6 +21,10 @@ class MainWindow:
 
         # メインウィンドウを保存する
         self.root = root
+
+        # コレクションRepositoryを保存する
+        self.repository = repository
+
         self.search_results = []
 
         # ウィンドウのタイトルを設定する
@@ -118,6 +122,15 @@ class MainWindow:
 
         self.detail_label.pack()
 
+        # コレクション一覧を表示するリスト
+        self.collection_listbox = tk.Listbox(
+            self.root,
+            width=70,
+            height=10
+        )
+
+        self.collection_listbox.pack()
+
     def search(self):
         """
         検索ボタンが押されたときの処理。
@@ -157,6 +170,67 @@ class MainWindow:
 
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
+
+
+    def show_collections(self):
+        """
+        Repositoryからコレクションを取得し、
+        GUIの一覧に表示する。
+        """
+
+        # コレクション一覧を取得する
+        collections = self.repository.get_collections()
+
+        # 以前の表示を削除する
+        self.collection_listbox.delete(0, tk.END)
+
+        # コレクションを1件ずつ表示する
+        for collection in collections:
+
+            # コレクション情報を取得する
+            artist_name = collection[1]
+            release_name = collection[2]
+
+            # アーティスト名と作品名を表示する
+            self.collection_listbox.insert(
+                tk.END,
+                f"{artist_name} - {release_name}"
+            )
+
+    def filter_collection_list(self, keyword="",cd_owned=None,vinyl_owned=None):
+        """
+        キーワードでコレクションを絞り込み、
+        GUIの一覧に表示する。
+
+        Args:
+            keyword (str):
+                アーティスト名または作品名の検索キーワード。
+        """
+
+        # キーワードを使ってコレクションを検索する
+        collections = self.repository.filter_collections(
+            keyword=keyword,
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned
+        )
+
+        # 以前の表示を削除する
+        self.collection_listbox.delete(0, tk.END)
+
+        # 検索結果を1件ずつ表示する
+        for collection in collections:
+
+            # コレクション情報を取得する
+            artist_name = collection[1]
+            release_name = collection[2]
+
+            # アーティスト名と作品名を表示する
+            self.collection_listbox.insert(
+                tk.END,
+                f"{artist_name} - {release_name}"
+            )
+
+
 
     def on_result_selected(self, event):
         """
