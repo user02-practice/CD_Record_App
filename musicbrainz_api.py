@@ -151,6 +151,29 @@ class MusicBrainzAPI:
         return result
 
 
+    def search_keyword(self, keyword):
+        """
+        キーワードでArtist、Album、Trackを検索する。
+
+        Args:
+            keyword (str):
+                検索するキーワード。
+
+        Returns:
+            dict:
+                Artist、Album、Trackの検索結果。
+        """
+
+        return {
+            "artists": self.search_artist(keyword)["artists"],
+            "release-groups": self.search_release_group(keyword)["release-groups"],
+            "recordings": self.search_track(keyword)["recordings"]
+        }
+
+
+
+
+
     def get_release_group_info(self, release_group):
         """
         Release Groupの検索結果から作品情報を取得する。

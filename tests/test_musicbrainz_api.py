@@ -407,3 +407,65 @@ def test_search_track_prioritizes_exact_title(mock_get):
     # 完全一致するTrackが先頭になること
     assert result["recordings"][0]["id"] == "bohemian-rhapsody-id"
     assert result["recordings"][0]["title"] == "Bohemian Rhapsody"
+
+def test_search_keyword_returns_search_results():
+    """Keyword検索でArtist、Album、Trackの検索結果を取得できること"""
+
+    api = MusicBrainzAPI()
+
+    # 各検索メソッドをテスト用に置き換える
+    api.search_artist = Mock(return_value={
+        "artists": [
+            {
+                "id": "test-artist-id",
+                "name": "Queen"
+            }
+        ]
+    })
+
+    api.search_release_group = Mock(return_value={
+        "release-groups": [
+            {
+                "id": "test-release-group-id",
+                "title": "Queen"
+            }
+        ]
+    })
+
+    api.search_track = Mock(return_value={
+        "recordings": [
+            {
+                "id": "test-recording-id",
+                "title": "Queen"
+            }
+        ]
+    })
+
+    result = api.search_keyword("Queen")
+
+    assert result["artists"][0]["name"] == "Queen"
+    assert result["release-groups"][0]["title"] == "Queen"
+    assert result["recordings"][0]["title"] == "Queen"
+
+def test_search_keyword_calls_all_search_methods():
+    """Keyword検索でArtist、Album、Trackの検索が実行されること"""
+
+    api = MusicBrainzAPI()
+
+    api.search_artist = Mock(return_value={
+        "artists": []
+    })
+
+    api.search_release_group = Mock(return_value={
+        "release-groups": []
+    })
+
+    api.search_track = Mock(return_value={
+        "recordings": []
+    })
+
+    api.search_keyword("Queen")
+
+    api.search_artist.assert_called_once_with("Queen")
+    api.search_release_group.assert_called_once_with("Queen")
+    api.search_track.assert_called_once_with("Queen")
