@@ -291,3 +291,66 @@ def test_search_artist_returns_queen_band(mock_get):
     assert result["artists"][0]["id"] == "queen-band-id"
     assert result["artists"][0]["name"] == "Queen"
     assert result["artists"][0]["type"] == "Group"
+
+@patch("musicbrainz_api.requests.get")
+def test_search_release_group_returns_requested_album(mock_get):
+    """指定したAlbumが検索結果に含まれること"""
+
+    # MusicBrainzから返ってくるデータを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "release-groups": [
+            {
+                "id": "test-release-group-id",
+                "title": "A Night at the Opera"
+            },
+            {
+                "id": "other-release-group-id",
+                "title": "Other Album"
+            }
+        ]
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_release_group("A Night at the Opera")
+
+    release_groups = result["release-groups"]
+
+    album_titles = [
+        release_group["title"]
+        for release_group in release_groups
+    ]
+
+    assert "A Night at the Opera" in album_titles
+
+@patch("musicbrainz_api.requests.get")
+def test_search_release_group_prioritizes_exact_title(mock_get):
+    """検索したAlbumと完全一致する作品を優先すること"""
+
+    # 検索結果に別の作品が先に入っているケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "release-groups": [
+            {
+                "id": "other-release-group-id",
+                "title": "Other Album"
+            },
+            {
+                "id": "test-release-group-id",
+                "title": "A Night at the Opera"
+            }
+        ]
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_release_group("A Night at the Opera")
+
+    # 完全一致するAlbumが先頭になること
+    assert result["release-groups"][0]["id"] == "test-release-group-id"
+    assert result["release-groups"][0]["title"] == "A Night at the Opera"

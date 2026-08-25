@@ -94,7 +94,16 @@ class MusicBrainzAPI:
 
         response.raise_for_status()
 
-        return response.json()
+        result = response.json()
+
+        # 検索したAlbum名と完全一致する作品を探す
+        for release_group in result.get("release-groups", []):
+            if release_group.get("title") == release_group_name:
+                result["release-groups"].remove(release_group)
+                result["release-groups"].insert(0, release_group)
+                break
+
+        return result
 
     def get_release_group_info(self, release_group):
         """
