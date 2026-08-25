@@ -626,3 +626,142 @@ def test_collection_filter_selection_updates_list_for_none_owned():
     assert "A Night at the Opera" in items[0]
 
     root.destroy()
+
+def test_collection_can_be_selected_from_list():
+    """
+    GUIのコレクション一覧から作品を選択すると、
+    選択したコレクションの情報を取得できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # コレクション一覧を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # ========================================
+    # 実行：一覧の1件目を選択する
+    # ========================================
+
+    window.collection_listbox.selection_set(0)
+
+    # 選択されたコレクションを取得する
+    collection = window.get_selected_collection()
+
+    # ========================================
+    # 確認：選択した作品が取得できる
+    # ========================================
+
+    assert collection is not None
+    assert collection[0] == "test-001"
+    assert collection[1] == "Queen"
+    assert collection[2] == "A Night at the Opera"
+    assert collection[3] == "EMI"
+    assert collection[4] == "1975-11-21"
+    assert collection[5] == "GB"
+    assert collection[6] == ["CD"]
+    assert collection[7] == 1
+    assert collection[8] == 0
+    assert collection[9] == "名盤"
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+
+def test_selected_collection_name_is_displayed_in_detail():
+    """
+    コレクション一覧から作品を選択すると、
+    選択した作品名が詳細欄に表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # コレクション一覧を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # ========================================
+    # 実行：一覧の1件目を選択する
+    # ========================================
+
+    window.collection_listbox.selection_set(0)
+
+    # 選択したコレクションの詳細を表示する
+    window.show_selected_collection_detail()
+
+    # ========================================
+    # 確認：作品名が詳細欄に表示されている
+    # ========================================
+
+    detail_text = window.detail_label.cget("text")
+
+    assert "A Night at the Opera" in detail_text
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()

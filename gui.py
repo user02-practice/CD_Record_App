@@ -376,6 +376,54 @@ class MainWindow:
 
             self.filter_collection_list()
 
+    def get_selected_collection(self):
+        """
+        コレクション一覧で選択されている作品を取得する。
+
+        Returns:
+            tuple or None:
+                選択されているコレクション。
+                選択されていない場合はNone。
+        """
+
+        # コレクション一覧で選択されている項目を取得する
+        selection = self.collection_listbox.curselection()
+
+        # 何も選択されていない場合
+        if not selection:
+            return None
+
+        # 選択された一覧の番号を取得する
+        index = selection[0]
+
+        # Repositoryからコレクション一覧を取得する
+        collections = self.repository.get_collections()
+
+        # 選択されたコレクションを返す
+        return collections[index]
+
+    def show_selected_collection_detail(self):
+        """
+        選択されているコレクションの詳細を表示する。
+        """
+
+        # 選択されているコレクションを取得する
+        collection = self.get_selected_collection()
+
+        # コレクションが選択されていない場合
+        if collection is None:
+            return
+
+        # コレクション情報を取得する
+        artist_name = collection[1]
+        release_name = collection[2]
+
+        # 詳細欄に作品情報を表示する
+        self.detail_label.config(
+            text=f"アーティスト：{artist_name}\n"
+                 f"作品名：{release_name}"
+        )
+
 
 def main():
     """
