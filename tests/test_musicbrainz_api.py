@@ -625,3 +625,4 @@ def test_search_keyword_raises_error_when_api_returns_error():
     # APIエラーが発生することを確認する
     with pytest.raises(requests.HTTPError):
         api.search_keyword("Queen")
+

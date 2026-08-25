@@ -95,7 +95,6 @@ def test_delete_collection():
 
     )
 
-
     # 削除
     repository.delete_collection("test-001")
 
@@ -160,6 +159,7 @@ def test_collection_can_be_registered_with_release_info():
         None
     )
 
+
 def test_collection_can_be_registered_with_owned_status():
     """CDとVinylの所有状態を含むコレクションを登録・取得できること"""
 
@@ -204,6 +204,7 @@ def test_collection_can_be_registered_with_owned_status():
         None
     )
 
+
 def test_collection_can_be_registered_with_memo():
     """メモを含むコレクションを登録・取得できること"""
 
@@ -247,4 +248,173 @@ def test_collection_can_be_registered_with_memo():
         cd_owned,
         vinyl_owned,
         memo
+    )
+
+def test_collections_can_be_retrieved():
+    """登録されているコレクションを一覧で取得できること"""
+
+    repository = CollectionRepository(":memory:")
+
+    # コレクションを2件登録
+    repository.add_collection(
+        "test-001",
+        "Queen",
+        "A Night at the Opera",
+        None,
+        None,
+        None,
+        [],
+        0,
+        0,
+        None
+    )
+
+    repository.add_collection(
+        "test-002",
+        "The Beatles",
+        "Abbey Road",
+        None,
+        None,
+        None,
+        [],
+        0,
+        0,
+        None
+    )
+
+    # コレクション一覧を取得
+    collections = repository.get_collections()
+
+    # 2件取得できることを確認
+    assert len(collections) == 2
+
+    # 登録した内容を確認
+    assert collections[0][0] == "test-001"
+    assert collections[0][1] == "Queen"
+    assert collections[0][2] == "A Night at the Opera"
+
+    assert collections[1][0] == "test-002"
+    assert collections[1][1] == "The Beatles"
+    assert collections[1][2] == "Abbey Road"
+
+def test_get_collections_returns_empty_list_when_no_collections():
+    """コレクションが登録されていない場合、空のリストが返ること"""
+
+    # テスト用のRepositoryを作成
+    repository = CollectionRepository(":memory:")
+
+    # コレクション一覧を取得
+    collections = repository.get_collections()
+
+    # 空のリストが返ることを確認
+    assert collections == []
+
+def test_collection_can_be_updated():
+    """登録済みコレクションの所有状態とメモを更新できること"""
+
+    # テスト用のRepositoryを作成
+    repository = CollectionRepository(":memory:")
+
+    # コレクションを登録
+    repository.add_collection(
+        "test-006",
+        "Queen",
+        "A Night at the Opera",
+        "EMI",
+        "1975-11-21",
+        "GB",
+        ["CD"],
+        0,
+        0,
+        None
+    )
+
+    # CDを所有、Vinylは未所有、メモを更新
+    repository.update_collection(
+        "test-006",
+        1,
+        0,
+        "中古で購入した。"
+    )
+
+    # 更新後のコレクションを取得
+    result = repository.get_collection("test-006")
+
+    # 更新された内容を確認
+    assert result == (
+        "test-006",
+        "Queen",
+        "A Night at the Opera",
+        "EMI",
+        "1975-11-21",
+        "GB",
+        ["CD"],
+        1,
+        0,
+        "中古で購入した。"
+    )
+
+def test_update_collection_when_id_does_not_exist():
+    """存在しないMusicBrainz IDを更新してもエラーにならないこと"""
+
+    # テスト用のRepositoryを作成
+    repository = CollectionRepository(":memory:")
+
+    # 存在しないIDを更新する
+    repository.update_collection(
+        "not-exist-id",
+        1,
+        0,
+        "存在しないコレクション"
+    )
+
+    # エラーが発生しないことを確認
+    result = repository.get_collection("not-exist-id")
+
+    # 存在しないためNoneであることを確認
+    assert result is None
+
+def test_collection_can_be_updated_to_own_both_formats():
+    """CDとVinylの両方を所有状態に更新できること"""
+
+    # テスト用のRepositoryを作成
+    repository = CollectionRepository(":memory:")
+
+    # CD・Vinylともに未所有で登録
+    repository.add_collection(
+        "test-007",
+        "The Beatles",
+        "Abbey Road",
+        "Apple Records",
+        "1969-09-26",
+        "GB",
+        ["CD", "Vinyl"],
+        0,
+        0,
+        None
+    )
+
+    # CD・Vinylの両方を所有状態に変更
+    repository.update_collection(
+        "test-007",
+        1,
+        1,
+        "CDとVinylの両方を所有"
+    )
+
+    # 更新後のコレクションを取得
+    result = repository.get_collection("test-007")
+
+    # 更新内容を確認
+    assert result == (
+        "test-007",
+        "The Beatles",
+        "Abbey Road",
+        "Apple Records",
+        "1969-09-26",
+        "GB",
+        ["CD", "Vinyl"],
+        1,
+        1,
+        "CDとVinylの両方を所有"
     )

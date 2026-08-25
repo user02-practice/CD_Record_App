@@ -205,6 +205,109 @@ class CollectionRepository:
 
         )
 
+    def get_collections(self):
+        """
+        登録されているコレクションをすべて取得する。
+
+        Returns:
+            list:
+                コレクションの一覧。
+                コレクションが存在しない場合は空のリスト。
+        """
+
+        # SQLを実行するためのカーソルを作成する
+        cursor = self.conn.cursor()
+
+        # コレクションをすべて取得する
+        cursor.execute("""
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+            ORDER BY id
+        """)
+
+        # 検索結果をすべて取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],
+                result[8],
+                result[9]
+            ))
+
+        return collections
+
+    def update_collection(
+        self,
+        musicbrainz_id,
+        cd_owned,
+        vinyl_owned,
+        memo
+    ):
+        """
+        コレクションの所有状態とメモを更新する。
+
+        Args:
+            musicbrainz_id (str):
+                更新する作品のMusicBrainz ID。
+
+            cd_owned (int):
+                CDを所有しているか。
+                0 = 未所有、1 = 所有。
+
+            vinyl_owned (int):
+                Vinylを所有しているか。
+                0 = 未所有、1 = 所有。
+
+            memo (str):
+                コレクションに関するメモ。
+        """
+
+        # コレクションを更新する
+        self.conn.execute(
+            """
+            UPDATE collections
+            SET
+                cd_owned = ?,
+                vinyl_owned = ?,
+                memo = ?
+            WHERE musicbrainz_id = ?
+            """,
+            (
+                cd_owned,
+                vinyl_owned,
+                memo,
+                musicbrainz_id
+            )
+        )
+
+        # DBへの変更を確定する
+        self.conn.commit()
+
     def delete_collection(self, musicbrainz_id):
         """指定したMusicBrainz IDのコレクションを削除する"""
 
