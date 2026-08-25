@@ -578,3 +578,50 @@ def test_search_track_returns_empty_result_when_no_track_found(mock_get):
 
     # 検索結果が空であることを確認する
     assert result["recordings"] == []
+
+def test_search_keyword_returns_empty_results_when_nothing_found():
+    """Keyword検索で何も見つからない場合に空の検索結果を返すこと"""
+
+    api = MusicBrainzAPI()
+
+    # 各検索メソッドが0件を返すケースを再現する
+    api.search_artist = Mock(return_value={
+        "artists": []
+    })
+
+    api.search_release_group = Mock(return_value={
+        "release-groups": []
+    })
+
+    api.search_track = Mock(return_value={
+        "recordings": []
+    })
+
+    result = api.search_keyword("存在しないキーワード")
+
+    # 3種類すべての検索結果が空であることを確認する
+    assert result["artists"] == []
+    assert result["release-groups"] == []
+    assert result["recordings"] == []
+
+def test_search_keyword_raises_error_when_api_returns_error():
+    """Keyword検索でAPIエラーが発生した場合に例外が発生すること"""
+
+    api = MusicBrainzAPI()
+
+    # Artist検索でAPIエラーが発生するケースを再現する
+    api.search_artist = Mock(
+        side_effect=requests.HTTPError()
+    )
+
+    api.search_release_group = Mock(return_value={
+        "release-groups": []
+    })
+
+    api.search_track = Mock(return_value={
+        "recordings": []
+    })
+
+    # APIエラーが発生することを確認する
+    with pytest.raises(requests.HTTPError):
+        api.search_keyword("Queen")
