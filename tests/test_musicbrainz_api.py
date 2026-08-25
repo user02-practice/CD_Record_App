@@ -354,3 +354,56 @@ def test_search_release_group_prioritizes_exact_title(mock_get):
     # 完全一致するAlbumが先頭になること
     assert result["release-groups"][0]["id"] == "test-release-group-id"
     assert result["release-groups"][0]["title"] == "A Night at the Opera"
+
+@patch("musicbrainz_api.requests.get")
+def test_search_track_returns_requested_track(mock_get):
+    """指定したTrackが検索結果に含まれること"""
+
+    # MusicBrainzから返ってくるデータを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "recordings": [
+            {
+                "id": "test-recording-id",
+                "title": "Bohemian Rhapsody"
+            }
+        ]
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_track("Bohemian Rhapsody")
+
+    assert result["recordings"][0]["id"] == "test-recording-id"
+    assert result["recordings"][0]["title"] == "Bohemian Rhapsody"
+
+@patch("musicbrainz_api.requests.get")
+def test_search_track_prioritizes_exact_title(mock_get):
+    """検索したTrackと完全一致する曲を優先すること"""
+
+    # 検索結果に別の曲が先に入っているケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "recordings": [
+            {
+                "id": "other-recording-id",
+                "title": "Other Song"
+            },
+            {
+                "id": "bohemian-rhapsody-id",
+                "title": "Bohemian Rhapsody"
+            }
+        ]
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_track("Bohemian Rhapsody")
+
+    # 完全一致するTrackが先頭になること
+    assert result["recordings"][0]["id"] == "bohemian-rhapsody-id"
+    assert result["recordings"][0]["title"] == "Bohemian Rhapsody"

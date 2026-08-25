@@ -105,6 +105,52 @@ class MusicBrainzAPI:
 
         return result
 
+    def search_track(self, track_name):
+        """
+        Track名でMusicBrainzのRecordingを検索する。
+
+        Args:
+            track_name (str):
+                検索するTrack名。
+
+        Returns:
+            dict:
+                MusicBrainz APIから取得した検索結果。
+        """
+
+        url = "https://musicbrainz.org/ws/2/recording/"
+
+        params = {
+            "query": f'recording:"{track_name}"',
+            "fmt": "json",
+            "limit": 20
+        }
+
+        headers = {
+            "User-Agent": "CD-Record-App/1.0"
+        }
+
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=10
+        )
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        # 検索したTrack名と完全一致する曲を探す
+        for recording in result.get("recordings", []):
+            if recording.get("title") == track_name:
+                result["recordings"].remove(recording)
+                result["recordings"].insert(0, recording)
+                break
+
+        return result
+
+
     def get_release_group_info(self, release_group):
         """
         Release Groupの検索結果から作品情報を取得する。
