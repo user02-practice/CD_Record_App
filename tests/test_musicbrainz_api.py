@@ -1,5 +1,8 @@
 from unittest.mock import Mock, patch
 
+import pytest
+import requests
+
 from musicbrainz_api import MusicBrainzAPI
 
 
@@ -469,3 +472,109 @@ def test_search_keyword_calls_all_search_methods():
     api.search_artist.assert_called_once_with("Queen")
     api.search_release_group.assert_called_once_with("Queen")
     api.search_track.assert_called_once_with("Queen")
+
+@patch("musicbrainz_api.requests.get")
+def test_search_artist_raises_error_when_api_returns_error(mock_get):
+    """Artist検索でAPIエラーが発生した場合に例外が発生すること"""
+
+    # APIがエラーを返すケースを再現する
+    mock_response = Mock()
+    mock_response.raise_for_status.side_effect = requests.HTTPError()
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    # APIエラーが発生することを確認する
+    with pytest.raises(requests.HTTPError):
+        api.search_artist("Queen")
+
+@patch("musicbrainz_api.requests.get")
+def test_search_artist_returns_empty_result_when_no_artist_found(mock_get):
+    """Artistが見つからない場合に空の検索結果を返すこと"""
+
+    # Artistが見つからないケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "artists": []
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_artist("存在しないアーティスト")
+
+    # 検索結果が空であることを確認する
+    assert result["artists"] == []
+
+@patch("musicbrainz_api.requests.get")
+def test_search_release_group_raises_error_when_api_returns_error(mock_get):
+    """作品検索でAPIエラーが発生した場合に例外が発生すること"""
+
+    # APIがエラーを返すケースを再現する
+    mock_response = Mock()
+    mock_response.raise_for_status.side_effect = requests.HTTPError()
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    # APIエラーが発生することを確認する
+    with pytest.raises(requests.HTTPError):
+        api.search_release_group("A Night at the Opera")
+
+
+@patch("musicbrainz_api.requests.get")
+def test_search_release_group_returns_empty_result_when_no_album_found(mock_get):
+    """作品が見つからない場合に空の検索結果を返すこと"""
+
+    # 作品が見つからないケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "release-groups": []
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_release_group("存在しない作品")
+
+    # 検索結果が空であることを確認する
+    assert result["release-groups"] == []
+
+@patch("musicbrainz_api.requests.get")
+def test_search_track_raises_error_when_api_returns_error(mock_get):
+    """Track検索でAPIエラーが発生した場合に例外が発生すること"""
+
+    # APIがエラーを返すケースを再現する
+    mock_response = Mock()
+    mock_response.raise_for_status.side_effect = requests.HTTPError()
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    # APIエラーが発生することを確認する
+    with pytest.raises(requests.HTTPError):
+        api.search_track("Bohemian Rhapsody")
+
+@patch("musicbrainz_api.requests.get")
+def test_search_track_returns_empty_result_when_no_track_found(mock_get):
+    """Trackが見つからない場合に空の検索結果を返すこと"""
+
+    # Trackが見つからないケースを再現する
+    mock_response = Mock()
+    mock_response.json.return_value = {
+        "recordings": []
+    }
+
+    mock_get.return_value = mock_response
+
+    api = MusicBrainzAPI()
+
+    result = api.search_track("存在しないTrack")
+
+    # 検索結果が空であることを確認する
+    assert result["recordings"] == []
