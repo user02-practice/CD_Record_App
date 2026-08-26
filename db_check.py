@@ -1,42 +1,21 @@
 import sqlite3
 
 
-# SQLiteデータベースに接続
+# データベースに接続
 conn = sqlite3.connect("music_collection.db")
 
-# SQLを実行するためのカーソルを作成
+# カーソルを作成
 cursor = conn.cursor()
 
 
-# テストデータを登録
-cursor.execute("""
-    INSERT INTO collections (
-        musicbrainz_id,
-        artist,
-        album
-    )
-    VALUES (?, ?, ?)
-""", (
-    "test-001",
-    "Queen",
-    "A Night at the Opera"
-))
+# collectionsテーブルの構造を確認
+cursor.execute("PRAGMA table_info(collections)")
+
+columns = cursor.fetchall()
+
+for column in columns:
+    print(column)
 
 
-# 変更を確定
-conn.commit()
-
-
-# collectionsテーブルのデータを取得
-cursor.execute("SELECT * FROM collections")
-
-rows = cursor.fetchall()
-
-
-# 取得したデータを表示
-for row in rows:
-    print(row)
-
-
-# データベースを閉じる
+# 接続を閉じる
 conn.close()
