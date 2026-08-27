@@ -269,6 +269,62 @@ class CollectionRepository:
 
         return collections
 
+    def get_collections_sorted_by_artist(self):
+        """
+        コレクションをアーティスト名の昇順で取得する。
+
+        Returns:
+            list:
+                アーティスト名で並び替えたコレクション一覧。
+        """
+
+        # SQLを実行するためのカーソルを作成する
+        cursor = self.conn.cursor()
+
+        # アーティスト名の昇順でコレクションを取得する
+        cursor.execute("""
+            SELECT
+                musicbrainz_id,
+                artist_name,
+                release_name,
+                label,
+                release_date,
+                country,
+                format,
+                jacket_url,
+                cd_owned,
+                vinyl_owned,
+                memo
+            FROM collections
+            ORDER BY artist_name COLLATE NOCASE ASC, id ASC
+        """)
+
+        # 検索結果をすべて取得する
+        results = cursor.fetchall()
+
+        collections = []
+
+        # DBから取得したデータをPythonで扱いやすい形に変換する
+        for result in results:
+            # formatを文字列からリストへ戻す
+            formats = result[6].split(",") if result[6] else []
+
+            collections.append((
+                result[0],
+                result[1],
+                result[2],
+                result[3],
+                result[4],
+                result[5],
+                formats,
+                result[7],  # jacket_url
+                result[8],  # cd_owned
+                result[9],  # vinyl_owned
+                result[10]  # memo
+            ))
+
+        return collections
+
     def get_collections_by_cd_owned(self):
         """
         CDを所有しているコレクションだけを取得する。
@@ -571,7 +627,7 @@ class CollectionRepository:
 
         # 登録順で並べる
         sql += " ORDER BY created_at DESC, id DESC"
-        
+
         # SQLを実行する
         cursor = self.conn.cursor()
         cursor.execute(sql, parameters)

@@ -162,6 +162,32 @@ class MainWindow:
 
         self.collection_search_entry.pack(pady=5)
 
+        # ========================================
+        # コレクション並び替え
+        # ========================================
+
+        # 並び替え方法を選択する
+        self.collection_sort = ttk.Combobox(
+            self.root,
+            values=[
+                "登録日時の新しい順",
+                "アーティスト名順"
+            ],
+            state="readonly"
+        )
+
+        # 初期状態は登録日時の新しい順
+        self.collection_sort.current(0)
+
+        # 並び替え選択欄を配置する
+        self.collection_sort.pack(pady=5)
+
+        # 並び替え方法が変更されたときの処理
+        self.collection_sort.bind(
+            "<<ComboboxSelected>>",
+            self.on_collection_sort_changed
+        )
+
         # コレクション所有フィルター
         self.collection_filter = ttk.Combobox(
             self.root,
@@ -195,6 +221,37 @@ class MainWindow:
         )
 
         self.collection_listbox.pack()
+
+    def on_collection_sort_changed(self, event=None):
+        """
+        コレクションの並び替え方法が変更されたときの処理。
+        """
+
+        sort_value = self.collection_sort.get()
+
+        # 登録日時の新しい順
+        if sort_value == "登録日時の新しい順":
+            collections = self.repository.get_collections()
+
+        # アーティスト名順
+        elif sort_value == "アーティスト名順":
+            collections = self.repository.get_collections_sorted_by_artist()
+
+        else:
+            collections = self.repository.get_collections()
+
+        # 一覧をいったん空にする
+        self.collection_listbox.delete(0, tk.END)
+
+        # 並び替えたコレクションを表示する
+        for collection in collections:
+            artist_name = collection[1]
+            release_name = collection[2]
+
+            self.collection_listbox.insert(
+                tk.END,
+                f"{artist_name} - {release_name}"
+            )
 
     def search(self):
         """

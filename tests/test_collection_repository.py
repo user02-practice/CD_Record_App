@@ -1404,3 +1404,76 @@ def test_collections_are_returned_newest_first():
 
     assert collections[0][0] == "test-002"
     assert collections[1][0] == "test-001"
+
+def test_collections_can_be_sorted_by_artist_name():
+    """
+    コレクションをアーティスト名の昇順で
+    並び替えて取得できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # Queen
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # The Beatles
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ABBA
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="ABBA",
+        release_name="Arrival",
+        label="Polar",
+        release_date="1976-10-11",
+        country="SE",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：アーティスト名で並び替える
+    # ========================================
+
+    results = repository.get_collections_sorted_by_artist()
+
+    # ========================================
+    # 確認：アーティスト名の昇順になる
+    # ========================================
+
+    assert len(results) == 3
+
+    assert results[0][1] == "ABBA"
+    assert results[1][1] == "Queen"
+    assert results[2][1] == "The Beatles"
