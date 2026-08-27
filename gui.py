@@ -133,6 +133,15 @@ class MainWindow:
 
         self.detail_label.pack()
 
+        # コレクション登録ボタン
+        self.collection_register_button = tk.Button(
+            self.root,
+            text="コレクションに登録",
+            command=self.register_selected_collection
+        )
+
+        self.collection_register_button.pack()
+
         # ========================================
         # コレクション検索
         # ========================================
@@ -459,6 +468,99 @@ class MainWindow:
                 f"レーベル：{label_text}\n"
                 f"国：{country_text}"
             )
+        )
+
+    def register_selected_collection(self):
+        """
+        選択した作品をコレクションに登録する。
+        """
+
+        # 選択された検索結果を取得する
+        selection = self.result_listbox.curselection()
+
+        if not selection:
+            return
+
+        # 選択された検索結果を取得する
+        index = selection[0]
+        result = self.search_results[index]
+
+        # MusicBrainz IDを取得する
+        musicbrainz_id = result.get("id")
+
+        # 詳細情報を取得する
+        api = MusicBrainzAPI()
+        release_group = api.get_release_group(
+            musicbrainz_id
+        )
+
+        # アーティスト名を取得する
+        artist_credit = release_group.get("artist-credit", [])
+
+        if artist_credit:
+            artist_name = artist_credit[0].get("name", "")
+        else:
+            artist_name = ""
+
+        # 作品名を取得する
+        release_name = release_group.get("title", "")
+
+        # リリース日を取得する
+        release_date = release_group.get(
+            "first-release-date",
+            ""
+        )
+
+        # ジャケット画像URLを取得する
+        jacket_url = release_group.get(
+            "jacket_url",
+            ""
+        )
+
+        # フォーマットを取得する
+        formats = []
+
+        for release in release_group.get("releases", []):
+            for media in release.get("media", []):
+                format_name = media.get("format")
+
+                if format_name and format_name not in formats:
+                    formats.append(format_name)
+
+        # レーベルを取得する
+        labels = []
+
+        for release in release_group.get("releases", []):
+            for label_info in release.get("label-info", []):
+                label = label_info.get("label")
+
+                if label:
+                    label_name = label.get("name")
+
+                    if label_name and label_name not in labels:
+                        labels.append(label_name)
+
+        # 国を取得する
+        countries = []
+
+        for release in release_group.get("releases", []):
+            country = release.get("country")
+
+            if country and country not in countries:
+                countries.append(country)
+
+        # Repositoryに登録する
+        self.repository.add_collection(
+            musicbrainz_id,
+            artist_name,
+            release_name,
+            ", ".join(labels),
+            release_date,
+            ", ".join(countries),
+            formats,
+            0,
+            0,
+            ""
         )
     def on_collection_filter_changed(self, event=None):
         """

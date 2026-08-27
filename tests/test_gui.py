@@ -1460,6 +1460,7 @@ def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
     assert "A Night at the Opera" in detail_text
     assert "Queen" in detail_text
 
+
 def test_selected_album_search_result_displays_release_date(root, monkeypatch):
     """
     アルバム検索結果から作品を選択すると、
@@ -1519,6 +1520,7 @@ def test_selected_album_search_result_displays_release_date(root, monkeypatch):
     detail_text = window.detail_label.cget("text")
 
     assert "1975-11-21" in detail_text
+
 
 def test_selected_album_search_result_displays_format(root, monkeypatch):
     """
@@ -1593,6 +1595,7 @@ def test_selected_album_search_result_displays_format(root, monkeypatch):
 
     assert "CD" in detail_text
     assert "Vinyl" in detail_text
+
 
 def test_selected_album_search_result_displays_label(root, monkeypatch):
     """
@@ -1674,6 +1677,7 @@ def test_selected_album_search_result_displays_label(root, monkeypatch):
 
     assert "EMI" in detail_text
 
+
 def test_selected_album_search_result_displays_country(root, monkeypatch):
     """
     アルバム検索結果から作品を選択すると、
@@ -1754,6 +1758,7 @@ def test_selected_album_search_result_displays_country(root, monkeypatch):
     detail_text = window.detail_label.cget("text")
 
     assert "GB" in detail_text
+
 
 def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
     """
@@ -1877,3 +1882,234 @@ def test_selected_album_search_result_displays_jacket_image(root, monkeypatch):
     )
 
     assert hasattr(window, "jacket_image_label")
+
+
+def test_selected_album_search_result_has_collection_register_button(
+        root,
+        monkeypatch
+):
+    """
+    アルバム検索結果を選択すると、
+    コレクション登録ボタンが詳細画面に存在することを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+    window.on_result_selected(None)
+
+    assert hasattr(
+        window,
+        "collection_register_button"
+    )
+
+
+def test_collection_register_button_calls_register_method(
+        root,
+        monkeypatch
+):
+    """
+    コレクション登録ボタンを押すと、
+    コレクション登録処理が呼ばれることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+
+def test_collection_register_button_has_register_command(
+        root,
+        monkeypatch
+):
+    """
+    コレクション登録ボタンに、
+    コレクション登録処理が設定されていることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    command = window.collection_register_button.cget("command")
+
+    assert command
+
+def test_collection_register_button_registers_selected_album(
+    root,
+    monkeypatch
+):
+    """
+    コレクション登録ボタンを押すと、
+    選択したアルバムがRepositoryに登録されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "first-release-date": "1975-11-21",
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+    window.on_result_selected(None)
+
+    window.collection_register_button.invoke()
+
+    collection = repository.get_collection(
+        "release-group-001"
+    )
+
+    assert collection is not None
+    assert collection[1] == "Queen"
+    assert collection[2] == "A Night at the Opera"
