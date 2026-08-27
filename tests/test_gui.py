@@ -2262,3 +2262,152 @@ def test_collection_register_button_opens_register_screen(
         window,
         "register_collection_data"
     )
+
+def test_collection_detail_has_delete_button(root):
+    """
+    コレクション詳細画面に削除ボタンが存在することを確認する
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    assert hasattr(window, "collection_delete_button")
+
+def test_collection_delete_button_calls_delete_method(root, monkeypatch):
+    """
+    コレクション削除ボタンを押すと、
+    Repositoryのdelete_collection()が呼ばれることを確認する
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    deleted_id = []
+
+    def fake_delete_collection(musicbrainz_id):
+        deleted_id.append(musicbrainz_id)
+
+    monkeypatch.setattr(
+        repository,
+        "delete_collection",
+        fake_delete_collection
+    )
+
+    window.collection_delete_button.invoke()
+
+    assert deleted_id == ["test-001"]
+
+def test_collection_delete_button_removes_collection(root):
+    """
+    コレクション削除ボタンを押すと、
+    コレクションがRepositoryから削除されることを確認する
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    window.collection_delete_button.invoke()
+
+    assert repository.get_collection("test-001") is None
+
+def test_collection_delete_button_refreshes_list(root):
+    """
+    コレクション削除後に、
+    コレクション一覧が更新されることを確認する
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+
+    # Queenを選択する
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    # Queenを削除する
+    window.collection_delete_button.invoke()
+
+    # 一覧を再取得する
+    items = window.collection_listbox.get(0, tk.END)
+
+    assert len(items) == 1
+    assert "Abbey Road" in items[0]

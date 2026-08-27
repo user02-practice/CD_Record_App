@@ -568,7 +568,7 @@ class MainWindow:
         # コレクション登録画面を表示する
         self.show_collection_register()
 
-        
+
     def on_collection_filter_changed(self, event=None):
         """
         コレクションの所有フィルターが変更されたときの処理。
@@ -866,6 +866,35 @@ class MainWindow:
                  f"Vinyl所有：{vinyl_owned_text}\n"
                  f"メモ：{memo or ''}"
         )
+
+        # コレクション削除ボタン
+        self.collection_delete_button = ttk.Button(
+            self.root,
+            text="コレクションから削除",
+            command=self.delete_collection
+        )
+
+        self.collection_delete_button.pack()
+
+    def delete_collection(self):
+        """
+        選択されているコレクションを削除する。
+        """
+
+        # 選択されているコレクションを取得する
+        collection = self.get_selected_collection()
+
+        # コレクションが選択されていない場合
+        if collection is None:
+            return
+
+        # Repositoryを使って削除する
+        self.repository.delete_collection(
+            musicbrainz_id=collection[0]
+        )
+
+        # コレクション一覧を更新する
+        self.show_collections()
 
 
     def update_collection(self):
