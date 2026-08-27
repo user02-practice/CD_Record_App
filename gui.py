@@ -249,6 +249,45 @@ class MainWindow:
                         recording.get("title")
                     )
 
+            # キーワード検索
+            elif search_target == "キーワード":
+                result = api.search_keyword(keyword)
+
+                # 検索結果を取得する
+                artists = result.get("artists", [])
+                release_groups = result.get("release-groups", [])
+                recordings = result.get("recordings", [])
+
+                self.search_results = (
+                    artists
+                    + release_groups
+                    + recordings
+                )
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # Artistの検索結果を表示する
+                for artist in artists:
+                    self.result_listbox.insert(
+                        tk.END,
+                        artist.get("name")
+                    )
+
+                # Albumの検索結果を表示する
+                for release_group in release_groups:
+                    self.result_listbox.insert(
+                        tk.END,
+                        release_group.get("title")
+                    )
+
+                # Trackの検索結果を表示する
+                for recording in recordings:
+                    self.result_listbox.insert(
+                        tk.END,
+                        recording.get("title")
+                    )
+
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
 

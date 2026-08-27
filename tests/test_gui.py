@@ -1558,3 +1558,84 @@ def test_track_search_results_can_be_displayed(root, monkeypatch):
 
     assert len(items) == 1
     assert "Bohemian Rhapsody" in items[0]
+
+def test_keyword_search_results_can_be_displayed(root, monkeypatch):
+    """
+    キーワード検索を実行すると、
+    Artist、Album、Trackの検索結果がGUIの一覧に表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # MusicBrainz APIの検索結果を用意する
+    # ========================================
+
+    class FakeMusicBrainzAPI:
+
+        def search_keyword(self, keyword):
+            return {
+                "artists": [
+                    {
+                        "id": "artist-001",
+                        "name": "Queen"
+                    }
+                ],
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ],
+                "recordings": [
+                    {
+                        "id": "recording-001",
+                        "title": "Bohemian Rhapsody"
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    # ========================================
+    # MainWindowを作成
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # キーワード検索を設定
+    # ========================================
+
+    window.search_target.set("キーワード")
+    window.search_entry.insert(
+        0,
+        "Queen"
+    )
+
+    # ========================================
+    # 検索を実行
+    # ========================================
+
+    window.search()
+
+    # ========================================
+    # 確認：検索結果が表示されている
+    # ========================================
+
+    items = window.result_listbox.get(0, tk.END)
+
+    assert len(items) == 3
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[1]
+    assert "Bohemian Rhapsody" in items[2]
