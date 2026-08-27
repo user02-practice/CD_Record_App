@@ -533,6 +533,18 @@ class MainWindow:
 
         self.memo_entry.pack()
 
+        # ========================================
+        # 登録ボタン
+        # ========================================
+
+        self.register_button = ttk.Button(
+            self.root,
+            text="登録",
+            command=self.register_collection
+        )
+
+        self.register_button.pack()
+
     def register_collection(self):
         """
         登録画面で入力された内容を使って

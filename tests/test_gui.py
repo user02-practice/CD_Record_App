@@ -1373,3 +1373,54 @@ def test_registered_collection_is_reflected_in_list(root):
     assert len(items) == 1
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
+
+def test_collection_register_screen_has_register_button():
+    """
+    コレクション登録画面に登録ボタンが存在することを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # 登録する作品情報を設定する
+    window.register_collection_data = {
+        "musicbrainz_id": "test-001",
+        "artist_name": "Queen",
+        "release_name": "A Night at the Opera",
+        "label": "EMI",
+        "release_date": "1975-11-21",
+        "country": "GB",
+        "formats": ["CD", "Vinyl"]
+    }
+
+    # ========================================
+    # 実行：登録画面を開く
+    # ========================================
+
+    window.show_collection_register()
+
+    # ========================================
+    # 確認：登録ボタンが存在する
+    # ========================================
+
+    assert hasattr(window, "register_button")
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
