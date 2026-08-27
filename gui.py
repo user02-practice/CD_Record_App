@@ -231,6 +231,24 @@ class MainWindow:
                         release_group.get("title")
                     )
 
+            # トラック検索
+            elif search_target == "トラック":
+                result = api.search_track(keyword)
+
+                # 検索結果を取得する
+                recordings = result.get("recordings", [])
+                self.search_results = recordings
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # 検索結果を画面に表示する
+                for recording in recordings:
+                    self.result_listbox.insert(
+                        tk.END,
+                        recording.get("title")
+                    )
+
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
 
