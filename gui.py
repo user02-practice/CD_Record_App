@@ -396,12 +396,25 @@ class MainWindow:
         # リリース日を取得する
         release_date = release_group.get("first-release-date", "")
 
-        # 詳細欄に作品名、アーティスト名、リリース日を表示する
+        # フォーマットを取得する
+        formats = []
+
+        for release in release_group.get("releases", []):
+            for media in release.get("media", []):
+                format_name = media.get("format")
+
+                if format_name and format_name not in formats:
+                    formats.append(format_name)
+
+        format_text = ", ".join(formats)
+
+        # 詳細欄に作品名、アーティスト名、リリース日、フォーマットを表示する
         self.detail_label.config(
             text=(
                 f"アーティスト：{artist_name}\n"
                 f"作品名：{release_group.get('title')}\n"
-                f"リリース日：{release_date}"
+                f"リリース日：{release_date}\n"
+                f"フォーマット：{format_text}"
             )
         )
 
