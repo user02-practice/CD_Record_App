@@ -408,13 +408,29 @@ class MainWindow:
 
         format_text = ", ".join(formats)
 
-        # 詳細欄に作品名、アーティスト名、リリース日、フォーマットを表示する
+        # レーベルを取得する
+        labels = []
+
+        for release in release_group.get("releases", []):
+            for label_info in release.get("label-info", []):
+                label = label_info.get("label")
+
+                if label:
+                    label_name = label.get("name")
+
+                    if label_name and label_name not in labels:
+                        labels.append(label_name)
+
+        label_text = ", ".join(labels)
+
+        # 詳細欄に作品名、アーティスト名、リリース日、フォーマット、レーベルを表示する
         self.detail_label.config(
             text=(
                 f"アーティスト：{artist_name}\n"
                 f"作品名：{release_group.get('title')}\n"
                 f"リリース日：{release_date}\n"
-                f"フォーマット：{format_text}"
+                f"フォーマット：{format_text}\n"
+                f"レーベル：{label_text}"
             )
         )
 

@@ -1593,3 +1593,83 @@ def test_selected_album_search_result_displays_format(root, monkeypatch):
 
     assert "CD" in detail_text
     assert "Vinyl" in detail_text
+
+def test_selected_album_search_result_displays_label(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    詳細欄にレーベルが表示されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            assert musicbrainz_id == "release-group-001"
+
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "first-release-date": "1975-11-21",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "releases": [
+                    {
+                        "title": "A Night at the Opera",
+                        "media": [
+                            {
+                                "format": "CD"
+                            },
+                            {
+                                "format": "Vinyl"
+                            }
+                        ],
+                        "label-info": [
+                            {
+                                "label": {
+                                    "name": "EMI"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+    window.on_result_selected(None)
+
+    detail_text = window.detail_label.cget("text")
+
+    assert "EMI" in detail_text
