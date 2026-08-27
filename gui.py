@@ -154,6 +154,27 @@ class MainWindow:
 
         collection_search_label.pack(pady=5)
 
+        # ========================================
+        # コレクション検索対象
+        # ========================================
+
+        # コレクション検索の対象を選択する
+        self.collection_search_target = ttk.Combobox(
+            self.root,
+            values=[
+                "アーティスト",
+                "アルバム",
+                "キーワード"
+            ],
+            state="readonly"
+        )
+
+        # 初期状態はキーワード検索
+        self.collection_search_target.current(2)
+
+        # 検索対象の選択欄を配置する
+        self.collection_search_target.pack(pady=5)
+
         # コレクション検索入力欄
         self.collection_search_entry = ttk.Entry(
             self.root,
@@ -393,21 +414,26 @@ class MainWindow:
             )
 
     def filter_collection_list(
-        self,
-        keyword="",
-        cd_owned=None,
-        vinyl_owned=None
+            self,
+            keyword="",
+            cd_owned=None,
+            vinyl_owned=None
     ):
         """
         キーワードと所有状態でコレクションを絞り込み、
         GUIの一覧に表示する。
         """
 
-        # キーワードと所有状態を使ってコレクションを検索する
+        # コレクション検索の対象を取得する
+        search_target = self.collection_search_target.get()
+
+        # 検索対象・キーワード・所有状態を使って
+        # コレクションを絞り込む
         collections = self.repository.filter_collections(
             keyword=keyword,
             cd_owned=cd_owned,
-            vinyl_owned=vinyl_owned
+            vinyl_owned=vinyl_owned,
+            search_target=search_target
         )
 
         # 以前の表示を削除する
@@ -415,7 +441,6 @@ class MainWindow:
 
         # 検索結果を1件ずつ表示する
         for collection in collections:
-
             # コレクション情報を取得する
             artist_name = collection[1]
             release_name = collection[2]

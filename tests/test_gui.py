@@ -2975,3 +2975,313 @@ def test_collection_list_can_be_searched_by_memo(root):
     assert len(items) == 1
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
+
+def test_collection_search_target_artist_searches_artist_only(root):
+    """
+    コレクション検索対象を「アーティスト」にした場合、
+    アーティスト名だけを対象に検索できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # アーティスト名にQueenを含む作品
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # アルバム名にはQueenを含むが、
+    # アーティスト名には含まない作品
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Various Artists",
+        release_name="Queen Tribute",
+        label=None,
+        release_date=None,
+        country=None,
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # メイン画面を作成する
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：検索対象をアーティストにする
+    # ========================================
+
+    window.collection_search_target.set(
+        "アーティスト"
+    )
+
+    window.filter_collection_list(
+        keyword="Queen"
+    )
+
+    # ========================================
+    # 確認：アーティスト名が一致する作品だけ表示される
+    # ========================================
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "Queen - A Night at the Opera" in items[0]
+
+def test_collection_search_target_album_searches_album_only(root):
+    """
+    コレクション検索対象を「アルバム」にした場合、
+    アルバム名だけを対象に検索できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # アルバム名にQueenを含む作品
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Various Artists",
+        release_name="Queen Tribute",
+        label=None,
+        release_date=None,
+        country=None,
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # アーティスト名にはQueenを含むが、
+    # アルバム名には含まない作品
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # メイン画面を作成する
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：検索対象をアルバムにする
+    # ========================================
+
+    window.collection_search_target.set(
+        "アルバム"
+    )
+
+    window.filter_collection_list(
+        keyword="Queen"
+    )
+
+    # ========================================
+    # 確認：アルバム名が一致する作品だけ表示される
+    # ========================================
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "Various Artists - Queen Tribute" in items[0]
+
+def test_collection_search_target_artist_can_be_combined_with_cd_filter(root):
+    """
+    コレクション検索対象を「アーティスト」にした状態で、
+    CD所有フィルターも同時に適用できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # Queen + CD所有
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # Queen + CD未所有
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["Vinyl"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # Queenではない + CD所有
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：Queen + CD所有で絞り込む
+    # ========================================
+
+    window.collection_search_target.set(
+        "アーティスト"
+    )
+
+    window.filter_collection_list(
+        keyword="Queen",
+        cd_owned=True
+    )
+
+    # ========================================
+    # 確認：QueenかつCD所有の作品だけ表示される
+    # ========================================
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "Queen - A Night at the Opera" in items[0]
+
+def test_collection_search_target_album_can_be_combined_with_vinyl_filter(root):
+    """
+    コレクション検索対象を「アルバム」にした状態で、
+    Vinyl所有フィルターも同時に適用できることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    # Abbey Road + Vinyl所有
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # Abbey Road + Vinyl未所有
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Various Artists",
+        release_name="Abbey Road Tribute",
+        label=None,
+        release_date=None,
+        country=None,
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # Abbey Roadではない + Vinyl所有
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["Vinyl"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # 検索対象をアルバムにする
+    window.collection_search_target.set(
+        "アルバム"
+    )
+
+    # Abbey Road + Vinyl所有で絞り込む
+    window.filter_collection_list(
+        keyword="Abbey Road",
+        vinyl_owned=True
+    )
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "The Beatles - Abbey Road" in items[0]

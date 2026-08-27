@@ -1536,3 +1536,121 @@ def test_collections_can_be_searched_by_memo():
     assert results[0][0] == "test-001"
     assert results[0][1] == "Queen"
     assert results[0][2] == "A Night at the Opera"
+
+def test_collections_can_be_searched_by_artist_only():
+    """
+    検索対象をアーティスト名にした場合、
+    アーティスト名だけを対象に検索できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # アーティスト名にQueenを含む作品
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # アルバム名にはQueenを含むが、
+    # アーティスト名には含まない作品
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Various Artists",
+        release_name="Queen Tribute",
+        label=None,
+        release_date=None,
+        country=None,
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：アーティスト名だけを検索する
+    # ========================================
+
+    results = repository.search_collections_by_artist(
+        "Queen"
+    )
+
+    # ========================================
+    # 確認：アーティスト名が一致する作品だけ取得できる
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-001"
+    assert results[0][1] == "Queen"
+
+def test_collections_can_be_searched_by_album_only():
+    """
+    検索対象をアルバム名にした場合、
+    アルバム名だけを対象に検索できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # アルバム名にQueenを含む作品
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Various Artists",
+        release_name="Queen Tribute",
+        label=None,
+        release_date=None,
+        country=None,
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # アーティスト名にはQueenを含むが、
+    # アルバム名には含まない作品
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：アルバム名だけを検索する
+    # ========================================
+
+    results = repository.search_collections_by_album(
+        "Queen"
+    )
+
+    # ========================================
+    # 確認：アルバム名が一致する作品だけ取得できる
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-001"
+    assert results[0][2] == "Queen Tribute"
