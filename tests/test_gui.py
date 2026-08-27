@@ -1639,3 +1639,162 @@ def test_keyword_search_results_can_be_displayed(root, monkeypatch):
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[1]
     assert "Bohemian Rhapsody" in items[2]
+
+def test_selected_album_search_result_can_be_retrieved(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    選択した検索結果を取得できることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # MusicBrainz APIの検索結果を用意する
+    # ========================================
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    # ========================================
+    # MainWindowを作成
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # アルバム検索を設定
+    # ========================================
+
+    window.search_target.set("アルバム")
+
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    # ========================================
+    # 検索を実行
+    # ========================================
+
+    window.search()
+
+    # ========================================
+    # 1件目を選択する
+    # ========================================
+
+    window.result_listbox.selection_set(0)
+
+    # ========================================
+    # 選択した検索結果を取得する
+    # ========================================
+
+    result = window.get_selected_search_result()
+
+    # ========================================
+    # 確認：選択した作品が取得できる
+    # ========================================
+
+    assert result is not None
+    assert result["id"] == "release-group-001"
+    assert result["title"] == "A Night at the Opera"
+
+def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    選択した作品名が詳細欄に表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # MusicBrainz APIの検索結果を用意する
+    # ========================================
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    # ========================================
+    # MainWindowを作成
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # アルバム検索を設定
+    # ========================================
+
+    window.search_target.set("アルバム")
+
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    # ========================================
+    # 検索を実行
+    # ========================================
+
+    window.search()
+
+    # ========================================
+    # 1件目を選択する
+    # ========================================
+
+    window.result_listbox.selection_set(0)
+
+    # ========================================
+    # 選択された検索結果を詳細表示する
+    # ========================================
+
+    window.on_result_selected(None)
+
+    # ========================================
+    # 確認：作品名が詳細欄に表示されている
+    # ========================================
+
+    detail_text = window.detail_label.cget("text")
+
+    assert "A Night at the Opera" in detail_text
+    

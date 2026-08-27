@@ -450,6 +450,29 @@ class MainWindow:
 
             self.filter_collection_list()
 
+    def get_selected_search_result(self):
+        """
+        検索結果一覧で選択されている検索結果を取得する。
+
+        Returns:
+            dict or None:
+                選択されている検索結果。
+                選択されていない場合はNone。
+        """
+
+        # 検索結果一覧で選択されている項目を取得する
+        selection = self.result_listbox.curselection()
+
+        # 何も選択されていない場合
+        if not selection:
+            return None
+
+        # 選択された一覧の番号を取得する
+        index = selection[0]
+
+        # 検索結果から選択された項目を返す
+        return self.search_results[index]
+
     def get_selected_collection(self):
         """
         コレクション一覧で選択されている作品を取得する。
