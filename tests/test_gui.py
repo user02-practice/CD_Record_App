@@ -1424,3 +1424,70 @@ def test_collection_register_screen_has_register_button():
     # ========================================
 
     root.destroy()
+
+def test_album_search_results_can_be_displayed(root, monkeypatch):
+    """
+    アルバム検索を実行すると、
+    検索結果がGUIの一覧に表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # MusicBrainz APIの検索結果を用意する
+    # ========================================
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    # ========================================
+    # MainWindowを作成
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # アルバム検索を設定
+    # ========================================
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    # ========================================
+    # 検索を実行
+    # ========================================
+
+    window.search()
+
+    # ========================================
+    # 確認：検索結果が表示されている
+    # ========================================
+
+    items = window.result_listbox.get(0, tk.END)
+
+    assert len(items) == 1
+    assert "A Night at the Opera" in items[0]

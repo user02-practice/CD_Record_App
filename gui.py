@@ -213,6 +213,23 @@ class MainWindow:
                         tk.END,
                         artist.get("name")
                     )
+            # アルバム検索
+            elif search_target == "アルバム":
+                result = api.search_release_group(keyword)
+
+                # 検索結果を取得する
+                release_groups = result.get("release-groups", [])
+                self.search_results = release_groups
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # 検索結果を画面に表示する
+                for release_group in release_groups:
+                    self.result_listbox.insert(
+                        tk.END,
+                        release_group.get("title")
+                    )
 
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
