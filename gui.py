@@ -423,17 +423,28 @@ class MainWindow:
 
         label_text = ", ".join(labels)
 
-        # 詳細欄に作品名、アーティスト名、リリース日、フォーマット、レーベルを表示する
+        # 国を取得する
+        countries = []
+
+        for release in release_group.get("releases", []):
+            country = release.get("country")
+
+            if country and country not in countries:
+                countries.append(country)
+
+        country_text = ", ".join(countries)
+
+        # 詳細欄に作品名、アーティスト名、リリース日、フォーマット、レーベル、国を表示する
         self.detail_label.config(
             text=(
                 f"アーティスト：{artist_name}\n"
                 f"作品名：{release_group.get('title')}\n"
                 f"リリース日：{release_date}\n"
                 f"フォーマット：{format_text}\n"
-                f"レーベル：{label_text}"
+                f"レーベル：{label_text}\n"
+                f"国：{country_text}"
             )
         )
-
     def on_collection_filter_changed(self, event=None):
         """
         コレクションの所有フィルターが変更されたときの処理。
