@@ -2904,3 +2904,74 @@ def test_collection_list_can_be_sorted_by_newest(root):
 
     assert "The Beatles" in items[0]
     assert "Queen" in items[1]
+
+def test_collection_list_can_be_searched_by_memo(root):
+    """
+    コレクション検索欄にメモのキーワードを入力すると、
+    メモに一致する作品が一覧表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="お気に入りのアルバム"
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=1,
+        memo="中古で購入"
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：メモのキーワードで検索する
+    # ========================================
+
+    window.collection_search_entry.insert(
+        0,
+        "お気に入り"
+    )
+
+    window.filter_collection_list(
+        keyword=window.collection_search_entry.get()
+    )
+
+    # ========================================
+    # 確認：メモが一致する作品だけ表示される
+    # ========================================
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[0]

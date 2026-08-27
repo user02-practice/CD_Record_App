@@ -437,7 +437,8 @@ class CollectionRepository:
 
     def search_collections(self, keyword):
         """
-        アーティスト名または作品名からコレクションを検索する。
+        アーティスト名、作品名、メモから
+        コレクションを検索する。
 
         Args:
             keyword (str):
@@ -451,7 +452,7 @@ class CollectionRepository:
         # SQLを実行するためのカーソルを作成する
         cursor = self.conn.cursor()
 
-        # アーティスト名または作品名を部分一致で検索する
+        # アーティスト名、作品名、メモを部分一致で検索する
         cursor.execute("""
             SELECT
                 musicbrainz_id,
@@ -461,14 +462,17 @@ class CollectionRepository:
                 release_date,
                 country,
                 format,
+                jacket_url,
                 cd_owned,
                 vinyl_owned,
                 memo
             FROM collections
             WHERE artist_name LIKE ?
                OR release_name LIKE ?
+               OR memo LIKE ?
             ORDER BY created_at DESC, id DESC
         """, (
+            f"%{keyword}%",
             f"%{keyword}%",
             f"%{keyword}%"
         ))
@@ -491,9 +495,10 @@ class CollectionRepository:
                 result[4],
                 result[5],
                 formats,
-                result[7],
-                result[8],
-                result[9]
+                result[7],  # jacket_url
+                result[8],  # cd_owned
+                result[9],  # vinyl_owned
+                result[10]  # memo
             ))
 
         return collections
@@ -589,9 +594,10 @@ class CollectionRepository:
         # キーワードが指定されている場合
         if keyword:
             conditions.append(
-                "(artist_name LIKE ? OR release_name LIKE ?)"
+                "(artist_name LIKE ? OR release_name LIKE ? OR memo LIKE ?)"
             )
 
+            parameters.append(f"%{keyword}%")
             parameters.append(f"%{keyword}%")
             parameters.append(f"%{keyword}%")
 
@@ -615,6 +621,7 @@ class CollectionRepository:
                 release_date,
                 country,
                 format,
+                jacket_url,
                 cd_owned,
                 vinyl_owned,
                 memo
@@ -650,9 +657,10 @@ class CollectionRepository:
                 result[4],
                 result[5],
                 formats,
-                result[7],
-                result[8],
-                result[9]
+                result[7],  # jacket_url
+                result[8],  # cd_owned
+                result[9],  # vinyl_owned
+                result[10]  # memo
             ))
 
         return collections

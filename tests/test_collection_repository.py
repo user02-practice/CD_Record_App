@@ -1477,3 +1477,62 @@ def test_collections_can_be_sorted_by_artist_name():
     assert results[0][1] == "ABBA"
     assert results[1][1] == "Queen"
     assert results[2][1] == "The Beatles"
+
+def test_collections_can_be_searched_by_memo():
+    """
+    メモに含まれるキーワードで
+    コレクションを検索できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # Queen
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="お気に入りのアルバム"
+    )
+
+    # The Beatles
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=1,
+        memo="中古で購入"
+    )
+
+    # ========================================
+    # 実行：メモの内容で検索する
+    # ========================================
+
+    results = repository.search_collections(
+        "お気に入り"
+    )
+
+    # ========================================
+    # 確認：メモが一致した作品だけ取得できる
+    # ========================================
+
+    assert len(results) == 1
+    assert results[0][0] == "test-001"
+    assert results[0][1] == "Queen"
+    assert results[0][2] == "A Night at the Opera"
