@@ -2317,6 +2317,11 @@ def test_collection_delete_button_calls_delete_method(root, monkeypatch):
     window.collection_listbox.selection_set(0)
     window.show_selected_collection_detail()
 
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        lambda title, message: True
+    )
+
     deleted_id = []
 
     def fake_delete_collection(musicbrainz_id):
@@ -2332,7 +2337,7 @@ def test_collection_delete_button_calls_delete_method(root, monkeypatch):
 
     assert deleted_id == ["test-001"]
 
-def test_collection_delete_button_removes_collection(root):
+def test_collection_delete_button_removes_collection(root,monkeypatch):
     """
     コレクション削除ボタンを押すと、
     コレクションがRepositoryから削除されることを確認する
@@ -2358,11 +2363,16 @@ def test_collection_delete_button_removes_collection(root):
     window.collection_listbox.selection_set(0)
     window.show_selected_collection_detail()
 
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        lambda title, message: True
+    )
+
     window.collection_delete_button.invoke()
 
     assert repository.get_collection("test-001") is None
 
-def test_collection_delete_button_refreshes_list(root):
+def test_collection_delete_button_refreshes_list(root,monkeypatch):
     """
     コレクション削除後に、
     コレクション一覧が更新されることを確認する
@@ -2403,6 +2413,11 @@ def test_collection_delete_button_refreshes_list(root):
     window.collection_listbox.selection_set(0)
     window.show_selected_collection_detail()
 
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        lambda title, message: True
+    )
+
     # Queenを削除する
     window.collection_delete_button.invoke()
 
@@ -2411,3 +2426,123 @@ def test_collection_delete_button_refreshes_list(root):
 
     assert len(items) == 1
     assert "Abbey Road" in items[0]
+
+def test_collection_delete_button_asks_for_confirmation(
+        root,
+        monkeypatch
+):
+    """
+    コレクション削除ボタンを押すと、
+    削除確認ダイアログが表示されることを確認する。
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    dialog_called = []
+
+    def fake_askyesno(title, message):
+        dialog_called.append((title, message))
+        return False
+
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        fake_askyesno
+    )
+
+    window.collection_delete_button.invoke()
+
+    assert len(dialog_called) == 1
+
+def test_collection_delete_is_cancelled_when_confirmation_is_no(
+        root,
+        monkeypatch
+):
+    """
+    削除確認ダイアログで「いいえ」を選択すると、
+    コレクションが削除されないことを確認する。
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        lambda title, message: False
+    )
+
+    window.collection_delete_button.invoke()
+
+    assert repository.get_collection("test-001") is not None
+
+def test_collection_delete_is_executed_when_confirmation_is_yes(
+        root,
+        monkeypatch
+):
+    """
+    削除確認ダイアログで「はい」を選択すると、
+    コレクションが削除されることを確認する。
+    """
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(root, repository)
+
+    window.show_collections()
+    window.collection_listbox.selection_set(0)
+    window.show_selected_collection_detail()
+
+    monkeypatch.setattr(
+        "gui.messagebox.askyesno",
+        lambda title, message: True
+    )
+
+    window.collection_delete_button.invoke()
+
+    assert repository.get_collection("test-001") is None

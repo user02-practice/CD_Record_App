@@ -888,6 +888,16 @@ class MainWindow:
         if collection is None:
             return
 
+        # 削除確認ダイアログを表示する
+        result = messagebox.askyesno(
+            "削除確認",
+            f"「{collection[2]}」を削除しますか？"
+        )
+
+        # キャンセルされた場合は削除しない
+        if not result:
+            return
+
         # Repositoryを使って削除する
         self.repository.delete_collection(
             musicbrainz_id=collection[0]
