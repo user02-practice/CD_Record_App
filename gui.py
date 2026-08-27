@@ -679,11 +679,11 @@ class MainWindow:
         # ========================================
 
         self.cd_owned_var = tk.BooleanVar(
-            value=bool(collection[7])
+            value=bool(collection[8])
         )
 
         self.vinyl_owned_var = tk.BooleanVar(
-            value=bool(collection[8])
+            value=bool(collection[9])
         )
 
         # ========================================
@@ -724,7 +724,7 @@ class MainWindow:
         # 既存のメモを設定する
         self.memo_entry.insert(
             0,
-            collection[9] or ""
+            collection[10] or ""
         )
 
         # ========================================
@@ -830,6 +830,7 @@ class MainWindow:
             release_date=data["release_date"],
             country=data["country"],
             formats=data["formats"],
+            jacket_url=data.get("jacket_url", ""),
             cd_owned=cd_owned,
             vinyl_owned=vinyl_owned,
             memo=memo
@@ -850,9 +851,12 @@ class MainWindow:
         # コレクション情報を取得する
         artist_name = collection[1]
         release_name = collection[2]
-        cd_owned = collection[7]
-        vinyl_owned = collection[8]
-        memo = collection[9]
+
+        # コレクションの所有状態とメモを取得する
+        # collection[7] はジャケット画像URL
+        cd_owned = collection[8]
+        vinyl_owned = collection[9]
+        memo = collection[10]
 
         # 所有状態を表示用の文字列に変換する
         cd_owned_text = "あり" if cd_owned else "なし"

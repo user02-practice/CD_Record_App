@@ -23,6 +23,11 @@ def test_collection_can_be_registered():
     release_date = None
     country = None
     formats = []
+
+    # ジャケット画像URL
+    # このテストでは画像URLを設定しないためNoneにする
+    jacket_url = None
+
     # ========================================
     # 実行：コレクションをDBへ登録する
     # ========================================
@@ -35,6 +40,7 @@ def test_collection_can_be_registered():
         release_date,
         country,
         formats,
+        jacket_url,
         0,
         0,
         None
@@ -58,12 +64,11 @@ def test_collection_can_be_registered():
         release_date,
         country,
         formats,
+        jacket_url,
         0,
         0,
         None
-
     )
-
 
 def test_get_collection_returns_none_when_id_does_not_exist():
     """存在しないMusicBrainz IDを検索した場合、Noneが返ること"""
@@ -82,17 +87,17 @@ def test_delete_collection():
 
     # コレクションを登録
     repository.add_collection(
-        "test-001",
-        "Queen",
-        "A Night at the Opera",
-        None,
-        None,
-        None,
-        [],
-        0,
-        0,
-        None
-
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
     )
 
     # 削除
@@ -131,6 +136,10 @@ def test_collection_can_be_registered_with_release_info():
     country = "GB"
     formats = ["CD"]
 
+    # ジャケット画像URL
+    # このテストでは画像URLを設定しないためNoneにする
+    jacket_url = None
+
     repository.add_collection(
         musicbrainz_id,
         artist_name,
@@ -139,6 +148,7 @@ def test_collection_can_be_registered_with_release_info():
         release_date,
         country,
         formats,
+        jacket_url,
         0,
         0,
         None
@@ -154,6 +164,7 @@ def test_collection_can_be_registered_with_release_info():
         release_date,
         country,
         formats,
+        jacket_url,
         0,
         0,
         None
@@ -172,6 +183,9 @@ def test_collection_can_be_registered_with_owned_status():
     release_date = "1975-11-21"
     country = "GB"
     formats = ["CD"]
+    # ジャケット画像URL
+    # このテストでは画像URLを設定しないためNoneにする
+    jacket_url = None
 
     cd_owned = 1
     vinyl_owned = 0
@@ -184,6 +198,7 @@ def test_collection_can_be_registered_with_owned_status():
         release_date,
         country,
         formats,
+        jacket_url,
         cd_owned,
         vinyl_owned,
         None
@@ -199,6 +214,7 @@ def test_collection_can_be_registered_with_owned_status():
         release_date,
         country,
         formats,
+        jacket_url,
         cd_owned,
         vinyl_owned,
         None
@@ -217,6 +233,9 @@ def test_collection_can_be_registered_with_memo():
     release_date = "1975-11-21"
     country = "GB"
     formats = ["CD"]
+    # ジャケット画像URL
+    # このテストでは画像URLを設定しないためNoneにする
+    jacket_url = None
 
     cd_owned = 1
     vinyl_owned = 0
@@ -230,6 +249,7 @@ def test_collection_can_be_registered_with_memo():
         release_date,
         country,
         formats,
+        jacket_url,
         cd_owned,
         vinyl_owned,
         memo
@@ -245,6 +265,7 @@ def test_collection_can_be_registered_with_memo():
         release_date,
         country,
         formats,
+        jacket_url,
         cd_owned,
         vinyl_owned,
         memo
@@ -257,16 +278,17 @@ def test_collections_can_be_retrieved():
 
     # コレクションを2件登録
     repository.add_collection(
-        "test-001",
-        "Queen",
-        "A Night at the Opera",
-        None,
-        None,
-        None,
-        [],
-        0,
-        0,
-        None
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
     )
 
     repository.add_collection(
@@ -277,6 +299,7 @@ def test_collections_can_be_retrieved():
         None,
         None,
         [],
+        None,  # jacket_url
         0,
         0,
         None
@@ -324,6 +347,7 @@ def test_collection_can_be_updated():
         "1975-11-21",
         "GB",
         ["CD"],
+        None,  # jacket_url
         0,
         0,
         None
@@ -349,6 +373,7 @@ def test_collection_can_be_updated():
         "1975-11-21",
         "GB",
         ["CD"],
+        None,  # jacket_url
         1,
         0,
         "中古で購入した。"
@@ -389,6 +414,7 @@ def test_collection_can_be_updated_to_own_both_formats():
         "1969-09-26",
         "GB",
         ["CD", "Vinyl"],
+        None,  # jacket_url
         0,
         0,
         None
@@ -414,6 +440,7 @@ def test_collection_can_be_updated_to_own_both_formats():
         "1969-09-26",
         "GB",
         ["CD", "Vinyl"],
+        None,  # jacket_url
         1,
         1,
         "CDとVinylの両方を所有"
@@ -440,6 +467,7 @@ def test_collections_can_be_searched_by_keyword():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -453,6 +481,7 @@ def test_collections_can_be_searched_by_keyword():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -466,6 +495,7 @@ def test_collections_can_be_searched_by_keyword():
         release_date="1977-10-28",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -508,6 +538,7 @@ def test_collections_can_be_searched_by_release_name():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -521,6 +552,7 @@ def test_collections_can_be_searched_by_release_name():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -534,6 +566,7 @@ def test_collections_can_be_searched_by_release_name():
         release_date="1977-10-28",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -574,6 +607,7 @@ def test_collections_can_be_searched_by_partial_keyword():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -587,6 +621,7 @@ def test_collections_can_be_searched_by_partial_keyword():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -600,6 +635,7 @@ def test_collections_can_be_searched_by_partial_keyword():
         release_date="1977-10-28",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -639,6 +675,7 @@ def test_search_collections_returns_empty_list_when_no_match():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -676,6 +713,7 @@ def test_search_collections_returns_all_collections_when_keyword_is_empty():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -689,6 +727,7 @@ def test_search_collections_returns_all_collections_when_keyword_is_empty():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -702,6 +741,7 @@ def test_search_collections_returns_all_collections_when_keyword_is_empty():
         release_date="1977-10-28",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -743,6 +783,7 @@ def test_collections_can_be_filtered_by_cd_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -756,6 +797,7 @@ def test_collections_can_be_filtered_by_cd_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -769,6 +811,7 @@ def test_collections_can_be_filtered_by_cd_owned():
         release_date="1977-10-28",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -809,6 +852,7 @@ def test_collections_can_be_filtered_by_vinyl_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -822,6 +866,7 @@ def test_collections_can_be_filtered_by_vinyl_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -835,6 +880,7 @@ def test_collections_can_be_filtered_by_vinyl_owned():
         release_date="1977-10-28",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -875,6 +921,7 @@ def test_get_collections_by_cd_owned_returns_empty_list_when_no_match():
         release_date="1975-11-21",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -912,6 +959,7 @@ def test_get_collections_by_vinyl_owned_returns_empty_list_when_no_match():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -949,6 +997,7 @@ def test_collections_can_be_filtered_by_keyword_and_cd_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -962,6 +1011,7 @@ def test_collections_can_be_filtered_by_keyword_and_cd_owned():
         release_date="1977-10-28",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -975,6 +1025,7 @@ def test_collections_can_be_filtered_by_keyword_and_cd_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -1016,6 +1067,7 @@ def test_collections_can_be_filtered_by_keyword_and_vinyl_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -1029,6 +1081,7 @@ def test_collections_can_be_filtered_by_keyword_and_vinyl_owned():
         release_date="1977-10-28",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -1042,6 +1095,7 @@ def test_collections_can_be_filtered_by_keyword_and_vinyl_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -1083,6 +1137,7 @@ def test_collections_can_be_filtered_by_cd_and_vinyl_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -1096,6 +1151,7 @@ def test_collections_can_be_filtered_by_cd_and_vinyl_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -1109,6 +1165,7 @@ def test_collections_can_be_filtered_by_cd_and_vinyl_owned():
         release_date="1973-03-01",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -1150,6 +1207,7 @@ def test_collections_can_be_filtered_by_neither_cd_nor_vinyl_owned():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -1163,6 +1221,7 @@ def test_collections_can_be_filtered_by_neither_cd_nor_vinyl_owned():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -1176,6 +1235,7 @@ def test_collections_can_be_filtered_by_neither_cd_nor_vinyl_owned():
         release_date="1973-03-01",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -1189,6 +1249,7 @@ def test_collections_can_be_filtered_by_neither_cd_nor_vinyl_owned():
         release_date="1977-01-14",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=0,
         memo=""
@@ -1231,6 +1292,7 @@ def test_filter_collections_returns_all_collections_when_no_conditions():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -1244,6 +1306,7 @@ def test_filter_collections_returns_all_collections_when_no_conditions():
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -1262,3 +1325,26 @@ def test_filter_collections_returns_all_collections_when_no_conditions():
     assert len(results) == 2
     assert results[0][0] == "test-001"
     assert results[1][0] == "test-002"
+
+def test_collection_can_be_registered_with_jacket_url():
+    """ジャケット画像URLを含むコレクションを登録・取得できること"""
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-jacket-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url="https://example.com/jacket.jpg",
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    result = repository.get_collection("test-jacket-001")
+
+    assert result[7] == "https://example.com/jacket.jpg"

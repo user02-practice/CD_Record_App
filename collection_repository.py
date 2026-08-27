@@ -50,6 +50,7 @@ class CollectionRepository:
                 release_date TEXT,
                 country TEXT,
                 format TEXT,
+                jacket_url TEXT,
                 cd_owned INTEGER NOT NULL DEFAULT 0,
                 vinyl_owned INTEGER NOT NULL DEFAULT 0,
                 memo TEXT
@@ -60,17 +61,18 @@ class CollectionRepository:
         self.conn.commit()
 
     def add_collection(
-        self,
-        musicbrainz_id,
-        artist_name,
-        release_name,
-        label,
-        release_date,
-        country,
-        formats,
-        cd_owned,
-        vinyl_owned,
-        memo
+            self,
+            musicbrainz_id,
+            artist_name,
+            release_name,
+            label,
+            release_date,
+            country,
+            formats,
+            jacket_url,
+            cd_owned,
+            vinyl_owned,
+            memo
     ):
         """
         コレクションをDBへ登録する。
@@ -125,11 +127,12 @@ class CollectionRepository:
                 release_date,
                 country,
                 format,
+                jacket_url,
                 cd_owned,
                 vinyl_owned,
                 memo
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             musicbrainz_id,
             artist_name,
@@ -138,6 +141,7 @@ class CollectionRepository:
             release_date,
             country,
             format_text,
+            jacket_url,
             cd_owned,
             vinyl_owned,
             memo
@@ -173,6 +177,7 @@ class CollectionRepository:
                 release_date,
                 country,
                 format,
+                jacket_url,
                 cd_owned,
                 vinyl_owned,
                 memo
@@ -199,10 +204,10 @@ class CollectionRepository:
             result[4],
             result[5],
             formats,
-            result[7],
-            result[8],
-            result[9]
-
+            result[7],  # jacket_url
+            result[8],  # cd_owned
+            result[9],  # vinyl_owned
+            result[10]  # memo
         )
 
     def get_collections(self):
@@ -228,6 +233,7 @@ class CollectionRepository:
                 release_date,
                 country,
                 format,
+                jacket_url,
                 cd_owned,
                 vinyl_owned,
                 memo
@@ -254,9 +260,10 @@ class CollectionRepository:
                 result[4],
                 result[5],
                 formats,
-                result[7],
-                result[8],
-                result[9]
+                result[7],  # jacket_url
+                result[8],  # cd_owned
+                result[9],  # vinyl_owned
+                result[10]  # memo
             ))
 
         return collections

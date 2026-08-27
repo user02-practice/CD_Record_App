@@ -31,16 +31,17 @@ def test_collection_list_can_be_displayed(root):
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
-        musicbrainz_id="test-001",
-        artist_name="Queen",
-        release_name="A Night at the Opera",
-        label="EMI",
-        release_date="1975-11-21",
-        country="GB",
-        formats=["CD"],
-        cd_owned=1,
-        vinyl_owned=0,
-        memo=""
+        "test-001",
+        "Queen",
+        "A Night at the Opera",
+        "EMI",
+        "1975-11-21",
+        "GB",
+        ["CD"],
+        None,  # jacket_url
+        1,
+        0,
+        ""
     )
 
     # ========================================
@@ -85,6 +86,7 @@ def test_collection_list_can_be_filtered_by_keyword(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -98,6 +100,7 @@ def test_collection_list_can_be_filtered_by_keyword(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -149,6 +152,7 @@ def test_collection_list_can_be_filtered_by_cd_owned(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -162,6 +166,7 @@ def test_collection_list_can_be_filtered_by_cd_owned(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -215,6 +220,7 @@ def test_collection_list_can_be_filtered_by_vinyl_owned(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -228,6 +234,7 @@ def test_collection_list_can_be_filtered_by_vinyl_owned(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -316,6 +323,7 @@ def test_collection_list_can_be_filtered_by_keyword_and_cd_owned(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -330,6 +338,7 @@ def test_collection_list_can_be_filtered_by_keyword_and_cd_owned(root):
         release_date="1977-10-28",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -344,6 +353,7 @@ def test_collection_list_can_be_filtered_by_keyword_and_cd_owned(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -435,6 +445,7 @@ def test_collection_filter_selection_updates_list(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -449,6 +460,7 @@ def test_collection_filter_selection_updates_list(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -503,6 +515,7 @@ def test_collection_filter_selection_updates_list_for_both_owned(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -517,6 +530,7 @@ def test_collection_filter_selection_updates_list_for_both_owned(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -531,6 +545,7 @@ def test_collection_filter_selection_updates_list_for_both_owned(root):
         release_date="1973-03-01",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -580,6 +595,7 @@ def test_collection_filter_selection_updates_list_for_none_owned(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=0,
         memo=""
@@ -593,6 +609,7 @@ def test_collection_filter_selection_updates_list_for_none_owned(root):
         release_date="1969-09-26",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -606,6 +623,7 @@ def test_collection_filter_selection_updates_list_for_none_owned(root):
         release_date="1973-03-01",
         country="GB",
         formats=["Vinyl"],
+        jacket_url=None,
         cd_owned=0,
         vinyl_owned=1,
         memo=""
@@ -647,6 +665,7 @@ def test_collection_can_be_selected_from_list():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -689,9 +708,10 @@ def test_collection_can_be_selected_from_list():
     assert collection[4] == "1975-11-21"
     assert collection[5] == "GB"
     assert collection[6] == ["CD"]
-    assert collection[7] == 1
-    assert collection[8] == 0
-    assert collection[9] == "名盤"
+    assert collection[7] is None  # jacket_url
+    assert collection[8] == 1  # cd_owned
+    assert collection[9] == 0  # vinyl_owned
+    assert collection[10] == "名盤"  # memo
 
     # ========================================
     # 後片付け
@@ -716,6 +736,7 @@ def test_selected_collection_name_is_displayed_in_detail():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -757,6 +778,7 @@ def test_collection_edit_controls_exist():
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -799,6 +821,7 @@ def test_collection_edit_controls_show_current_values():
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -840,6 +863,7 @@ def test_collection_can_be_updated_from_edit_screen():
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -868,9 +892,10 @@ def test_collection_can_be_updated_from_edit_screen():
 
     collection = repository.get_collection("test-001")
 
-    assert collection[7] == 0
-    assert collection[8] == 1
-    assert collection[9] == "買い直したい"
+    assert collection[7] is None  # jacket_url
+    assert collection[8] == 0  # cd_owned
+    assert collection[9] == 1  # vinyl_owned
+    assert collection[10] == "買い直したい"  # memo
 
     root.destroy()
 
@@ -890,6 +915,7 @@ def test_collection_edit_screen_has_update_button():
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -929,6 +955,7 @@ def test_updated_collection_is_reflected_in_detail():
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -984,6 +1011,7 @@ def test_update_collection_refreshes_detail():
         release_date="1975-11-21",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo="名盤"
@@ -1088,9 +1116,10 @@ def test_collection_can_be_registered_from_register_screen():
     assert collection[0] == "test-001"
     assert collection[1] == "Queen"
     assert collection[2] == "A Night at the Opera"
-    assert collection[7] == 1
-    assert collection[8] == 0
-    assert collection[9] == "名盤"
+    assert collection[7] == ""  # jacket_url
+    assert collection[8] == 1  # cd_owned
+    assert collection[9] == 0  # vinyl_owned
+    assert collection[10] == "名盤"  # memo
 
     root.destroy()
 
@@ -2277,6 +2306,7 @@ def test_collection_detail_has_delete_button(root):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2306,6 +2336,7 @@ def test_collection_delete_button_calls_delete_method(root, monkeypatch):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2352,6 +2383,7 @@ def test_collection_delete_button_removes_collection(root,monkeypatch):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2387,6 +2419,7 @@ def test_collection_delete_button_refreshes_list(root,monkeypatch):
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2400,6 +2433,7 @@ def test_collection_delete_button_refreshes_list(root,monkeypatch):
         release_date="1969-09-26",
         country="GB",
         formats=["CD", "Vinyl"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=1,
         memo=""
@@ -2445,6 +2479,7 @@ def test_collection_delete_button_asks_for_confirmation(
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2489,6 +2524,7 @@ def test_collection_delete_is_cancelled_when_confirmation_is_no(
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
@@ -2527,6 +2563,7 @@ def test_collection_delete_is_executed_when_confirmation_is_yes(
         release_date="1975-11-21",
         country="GB",
         formats=["CD"],
+        jacket_url=None,
         cd_owned=1,
         vinyl_owned=0,
         memo=""
