@@ -2113,3 +2113,83 @@ def test_collection_register_button_registers_selected_album(
     assert collection is not None
     assert collection[1] == "Queen"
     assert collection[2] == "A Night at the Opera"
+
+def test_collection_register_button_does_not_duplicate_collection(
+        root,
+        monkeypatch
+):
+    """
+    同じ作品をコレクションに2回登録しても、
+    二重登録されないことを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "releases": [
+                    {
+                        "country": "GB",
+                        "media": [
+                            {
+                                "format": "CD"
+                            }
+                        ],
+                        "label-info": [
+                            {
+                                "label": {
+                                    "name": "EMI"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+    window.on_result_selected(None)
+
+    window.collection_register_button.invoke()
+    window.collection_register_button.invoke()
+
+    collections = repository.get_collections()
+
+    assert len(collections) == 1

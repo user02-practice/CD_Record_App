@@ -488,6 +488,10 @@ class MainWindow:
         # MusicBrainz IDを取得する
         musicbrainz_id = result.get("id")
 
+        # すでにコレクションに登録されているか確認する
+        if self.repository.get_collection(musicbrainz_id) is not None:
+            return
+
         # 詳細情報を取得する
         api = MusicBrainzAPI()
         release_group = api.get_release_group(
