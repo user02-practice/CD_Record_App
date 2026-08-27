@@ -479,6 +479,90 @@ class MainWindow:
 
         self.update_button.pack()
 
+    def show_collection_register(self):
+        """
+        コレクションの登録画面を表示する。
+        """
+
+        # ========================================
+        # 登録用の値を作成する
+        # ========================================
+
+        # 初期状態ではCDを所有していない
+        self.cd_owned_var = tk.BooleanVar(
+            value=False
+        )
+
+        # 初期状態ではVinylを所有していない
+        self.vinyl_owned_var = tk.BooleanVar(
+            value=False
+        )
+
+        # ========================================
+        # CD所有チェックボックス
+        # ========================================
+
+        self.cd_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="CD所有",
+            variable=self.cd_owned_var
+        )
+
+        self.cd_owned_checkbutton.pack()
+
+        # ========================================
+        # Vinyl所有チェックボックス
+        # ========================================
+
+        self.vinyl_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="Vinyl所有",
+            variable=self.vinyl_owned_var
+        )
+
+        self.vinyl_owned_checkbutton.pack()
+
+        # ========================================
+        # メモ入力欄
+        # ========================================
+
+        self.memo_entry = ttk.Entry(
+            self.root,
+            width=50
+        )
+
+        self.memo_entry.pack()
+
+    def register_collection(self):
+        """
+        登録画面で入力された内容を使って
+        コレクションをDBへ登録する。
+        """
+
+        # 登録する作品情報を取得する
+        data = self.register_collection_data
+
+        # 登録画面で入力された所有状態を取得する
+        cd_owned = int(self.cd_owned_var.get())
+        vinyl_owned = int(self.vinyl_owned_var.get())
+
+        # 登録画面で入力されたメモを取得する
+        memo = self.memo_entry.get()
+
+        # Repositoryへコレクションを登録する
+        self.repository.add_collection(
+            musicbrainz_id=data["musicbrainz_id"],
+            artist_name=data["artist_name"],
+            release_name=data["release_name"],
+            label=data["label"],
+            release_date=data["release_date"],
+            country=data["country"],
+            formats=data["formats"],
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned,
+            memo=memo
+        )
+
     def show_selected_collection_detail(self):
         """
         選択されているコレクションの詳細を表示する。

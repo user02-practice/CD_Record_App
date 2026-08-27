@@ -1177,3 +1177,199 @@ def test_update_collection_refreshes_detail():
     # ========================================
 
     root.destroy()
+
+def test_collection_register_controls_exist():
+    """
+    コレクションの登録画面を開くと、
+    CD所有、Vinyl所有、メモの入力部品が存在することを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：登録画面を開く
+    # ========================================
+
+    window.show_collection_register()
+
+    # ========================================
+    # 確認：登録用の部品が存在する
+    # ========================================
+
+    assert hasattr(window, "cd_owned_var")
+    assert hasattr(window, "vinyl_owned_var")
+    assert hasattr(window, "memo_entry")
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_collection_can_be_registered_from_register_screen():
+    """
+    登録画面で入力した所有状態とメモを使って、
+    コレクションをDBへ登録できることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # 準備：Tkinterの画面を作成
+    # ========================================
+
+    root = tk.Tk()
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 登録する作品情報を設定
+    # ========================================
+
+    window.register_collection_data = {
+        "musicbrainz_id": "test-001",
+        "artist_name": "Queen",
+        "release_name": "A Night at the Opera",
+        "label": "EMI",
+        "release_date": "1975-11-21",
+        "country": "GB",
+        "formats": ["CD", "Vinyl"]
+    }
+
+    # ========================================
+    # 登録画面を開く
+    # ========================================
+
+    window.show_collection_register()
+
+    # ========================================
+    # 登録内容を入力
+    # ========================================
+
+    window.cd_owned_var.set(True)
+    window.vinyl_owned_var.set(False)
+
+    window.memo_entry.insert(
+        0,
+        "名盤"
+    )
+
+    # ========================================
+    # 実行：コレクションを登録
+    # ========================================
+
+    window.register_collection()
+
+    # ========================================
+    # 確認：DBへ登録されている
+    # ========================================
+
+    collection = repository.get_collection("test-001")
+
+    assert collection is not None
+    assert collection[0] == "test-001"
+    assert collection[1] == "Queen"
+    assert collection[2] == "A Night at the Opera"
+    assert collection[7] == 1
+    assert collection[8] == 0
+    assert collection[9] == "名盤"
+
+    # ========================================
+    # 後片付け
+    # ========================================
+
+    root.destroy()
+
+def test_registered_collection_is_reflected_in_list(root):
+    """
+    コレクションを登録すると、
+    登録した作品が一覧に表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：Repositoryを作成
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ========================================
+    # 準備：MainWindowを作成
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # 登録する作品情報を設定する
+    window.register_collection_data = {
+        "musicbrainz_id": "test-001",
+        "artist_name": "Queen",
+        "release_name": "A Night at the Opera",
+        "label": "EMI",
+        "release_date": "1975-11-21",
+        "country": "GB",
+        "formats": ["CD", "Vinyl"]
+    }
+
+    # ========================================
+    # 登録画面を開く
+    # ========================================
+
+    window.show_collection_register()
+
+    # ========================================
+    # 登録内容を入力する
+    # ========================================
+
+    window.cd_owned_var.set(True)
+    window.vinyl_owned_var.set(False)
+
+    window.memo_entry.insert(
+        0,
+        "名盤"
+    )
+
+    # ========================================
+    # 実行：コレクションを登録する
+    # ========================================
+
+    window.register_collection()
+
+    # ========================================
+    # 登録後の一覧を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # ========================================
+    # 確認：登録した作品が一覧に表示される
+    # ========================================
+
+    items = window.collection_listbox.get(0, tk.END)
+
+    assert len(items) == 1
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[0]
