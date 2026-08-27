@@ -367,19 +367,15 @@ class MainWindow:
         # 選択された番号を取得する
         index = selection[0]
 
-        # 検索結果から選択されたアーティストを取得する
-        artist = self.search_results[index]
+        # 選択された検索結果を取得する
+        result = self.search_results[index]
 
         # MusicBrainz IDを取得する
-        musicbrainz_id = artist.get("id")
-
-        # 確認のためコンソールに表示する
-        print(musicbrainz_id)
-        print(artist.get("name"))
+        musicbrainz_id = result.get("id")
 
         try:
-            release_groups = api.search_release_group(
-                artist.get("name")
+            release_group = api.get_release_group(
+                musicbrainz_id
             )
 
         except requests.exceptions.RequestException:
@@ -389,22 +385,21 @@ class MainWindow:
             )
             return
 
-        print(release_groups)
-        print(release_groups.get("release-groups", []))
+        # アーティスト名を取得する
+        artist_credit = release_group.get("artist-credit", [])
 
-        release_group_list = release_groups.get(
-            "release-groups",
-            []
-        )
+        if artist_credit:
+            artist_name = artist_credit[0].get("name", "")
+        else:
+            artist_name = ""
 
-        if release_group_list:
-            release_group = release_group_list[0]
-
-            print(release_group.get("title"))
-
-            self.detail_label.config(
-                text=f"作品名：{release_group.get('title')}"
+        # 詳細欄に作品名とアーティスト名を表示する
+        self.detail_label.config(
+            text=(
+                f"アーティスト：{artist_name}\n"
+                f"作品名：{release_group.get('title')}"
             )
+        )
 
     def on_collection_filter_changed(self, event=None):
         """

@@ -16,6 +16,8 @@ def root():
     yield root
 
     root.destroy()
+
+
 def test_collection_list_can_be_displayed(root):
     """
     Repositoryに登録したコレクションが
@@ -561,7 +563,8 @@ def test_collection_filter_selection_updates_list_for_both_owned(root):
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
 
-def test_collection_filter_selection_updates_list_for_none_owned():
+
+def test_collection_filter_selection_updates_list_for_none_owned(root):
     """
     GUIで「どちらも未所有」を選択すると、
     CDとVinylのどちらも所有していないコレクションだけが表示されることを確認する。
@@ -608,8 +611,6 @@ def test_collection_filter_selection_updates_list_for_none_owned():
         memo=""
     )
 
-    root = tk.Tk()
-
     window = MainWindow(
         root,
         repository
@@ -625,7 +626,6 @@ def test_collection_filter_selection_updates_list_for_none_owned():
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
 
-    root.destroy()
 
 def test_collection_can_be_selected_from_list():
     """
@@ -675,7 +675,6 @@ def test_collection_can_be_selected_from_list():
 
     window.collection_listbox.selection_set(0)
 
-    # 選択されたコレクションを取得する
     collection = window.get_selected_collection()
 
     # ========================================
@@ -707,10 +706,6 @@ def test_selected_collection_name_is_displayed_in_detail():
     選択した作品名が詳細欄に表示されることを確認する。
     """
 
-    # ========================================
-    # 準備：テスト用のRepositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -726,10 +721,6 @@ def test_selected_collection_name_is_displayed_in_detail():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -737,34 +728,18 @@ def test_selected_collection_name_is_displayed_in_detail():
         repository
     )
 
-    # ========================================
-    # コレクション一覧を表示する
-    # ========================================
-
     window.show_collections()
-
-    # ========================================
-    # 実行：一覧の1件目を選択する
-    # ========================================
 
     window.collection_listbox.selection_set(0)
 
-    # 選択したコレクションの詳細を表示する
     window.show_selected_collection_detail()
-
-    # ========================================
-    # 確認：作品名が詳細欄に表示されている
-    # ========================================
 
     detail_text = window.detail_label.cget("text")
 
     assert "A Night at the Opera" in detail_text
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_edit_controls_exist():
     """
@@ -772,10 +747,6 @@ def test_collection_edit_controls_exist():
     CD所有、Vinyl所有、メモの編集部品が存在することを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -791,10 +762,6 @@ def test_collection_edit_controls_exist():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -802,31 +769,18 @@ def test_collection_edit_controls_exist():
         repository
     )
 
-    # ========================================
-    # 実行：コレクション一覧を表示する
-    # ========================================
-
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
 
-    # 編集画面を開く
     window.show_collection_edit()
-
-    # ========================================
-    # 確認：編集部品が存在する
-    # ========================================
 
     assert hasattr(window, "cd_owned_var")
     assert hasattr(window, "vinyl_owned_var")
     assert hasattr(window, "memo_entry")
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_edit_controls_show_current_values():
     """
@@ -835,10 +789,6 @@ def test_collection_edit_controls_show_current_values():
     編集部品に正しく設定されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -854,10 +804,6 @@ def test_collection_edit_controls_show_current_values():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -865,31 +811,18 @@ def test_collection_edit_controls_show_current_values():
         repository
     )
 
-    # ========================================
-    # 実行：コレクション一覧を表示する
-    # ========================================
-
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
 
-    # 編集画面を開く
     window.show_collection_edit()
-
-    # ========================================
-    # 確認：現在の値が読み込まれている
-    # ========================================
 
     assert window.cd_owned_var.get() is True
     assert window.vinyl_owned_var.get() is False
     assert window.memo_entry.get() == "名盤"
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_can_be_updated_from_edit_screen():
     """
@@ -897,10 +830,6 @@ def test_collection_can_be_updated_from_edit_screen():
     コレクションが正しく更新されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -916,10 +845,6 @@ def test_collection_can_be_updated_from_edit_screen():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -927,18 +852,11 @@ def test_collection_can_be_updated_from_edit_screen():
         repository
     )
 
-    # コレクション一覧を表示する
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
 
-    # 編集画面を開く
     window.show_collection_edit()
-
-    # ========================================
-    # 実行：編集内容を変更する
-    # ========================================
 
     window.cd_owned_var.set(False)
     window.vinyl_owned_var.set(True)
@@ -946,12 +864,7 @@ def test_collection_can_be_updated_from_edit_screen():
     window.memo_entry.delete(0, tk.END)
     window.memo_entry.insert(0, "買い直したい")
 
-    # 更新する
     window.update_collection()
-
-    # ========================================
-    # 確認：Repositoryのデータが更新されている
-    # ========================================
 
     collection = repository.get_collection("test-001")
 
@@ -959,20 +872,13 @@ def test_collection_can_be_updated_from_edit_screen():
     assert collection[8] == 1
     assert collection[9] == "買い直したい"
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_edit_screen_has_update_button():
     """
     コレクション編集画面に更新ボタンが存在することを確認する。
     """
-
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
 
     repository = CollectionRepository(":memory:")
 
@@ -989,10 +895,6 @@ def test_collection_edit_screen_has_update_button():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -1000,29 +902,16 @@ def test_collection_edit_screen_has_update_button():
         repository
     )
 
-    # ========================================
-    # 実行：編集画面を開く
-    # ========================================
-
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
 
-    # 編集画面を開く
     window.show_collection_edit()
-
-    # ========================================
-    # 確認：更新ボタンが存在する
-    # ========================================
 
     assert hasattr(window, "update_button")
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_updated_collection_is_reflected_in_detail():
     """
@@ -1030,10 +919,6 @@ def test_updated_collection_is_reflected_in_detail():
     詳細表示に更新後の所有状態とメモが反映されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -1049,10 +934,6 @@ def test_updated_collection_is_reflected_in_detail():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -1060,34 +941,21 @@ def test_updated_collection_is_reflected_in_detail():
         repository
     )
 
-    # コレクション一覧を表示する
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
-
-    # ========================================
-    # 実行：編集画面を開く
-    # ========================================
 
     window.show_collection_edit()
 
-    # 編集内容を変更する
     window.cd_owned_var.set(False)
     window.vinyl_owned_var.set(True)
 
     window.memo_entry.delete(0, tk.END)
     window.memo_entry.insert(0, "買い直したい")
 
-    # コレクションを更新する
     window.update_collection()
 
-    # 詳細表示を更新する
     window.show_selected_collection_detail()
-
-    # ========================================
-    # 確認：更新後の内容が詳細に表示される
-    # ========================================
 
     detail_text = window.detail_label.cget("text")
 
@@ -1097,11 +965,8 @@ def test_updated_collection_is_reflected_in_detail():
     assert "Vinyl所有：あり" in detail_text
     assert "メモ：買い直したい" in detail_text
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_update_collection_refreshes_detail():
     """
@@ -1109,10 +974,6 @@ def test_update_collection_refreshes_detail():
     詳細表示も自動的に更新されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
 
     repository.add_collection(
@@ -1128,10 +989,6 @@ def test_update_collection_refreshes_detail():
         memo="名盤"
     )
 
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
-
     root = tk.Tk()
 
     window = MainWindow(
@@ -1141,15 +998,9 @@ def test_update_collection_refreshes_detail():
 
     window.show_collections()
 
-    # 1件目を選択する
     window.collection_listbox.selection_set(0)
 
-    # 編集画面を開く
     window.show_collection_edit()
-
-    # ========================================
-    # 実行：編集内容を変更する
-    # ========================================
 
     window.cd_owned_var.set(False)
     window.vinyl_owned_var.set(True)
@@ -1157,12 +1008,7 @@ def test_update_collection_refreshes_detail():
     window.memo_entry.delete(0, tk.END)
     window.memo_entry.insert(0, "買い直したい")
 
-    # 更新する
     window.update_collection()
-
-    # ========================================
-    # 確認：詳細表示が自動的に更新される
-    # ========================================
 
     detail_text = window.detail_label.cget("text")
 
@@ -1172,11 +1018,8 @@ def test_update_collection_refreshes_detail():
     assert "Vinyl所有：あり" in detail_text
     assert "メモ：買い直したい" in detail_text
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_register_controls_exist():
     """
@@ -1184,15 +1027,7 @@ def test_collection_register_controls_exist():
     CD所有、Vinyl所有、メモの入力部品が存在することを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
 
     root = tk.Tk()
 
@@ -1201,25 +1036,14 @@ def test_collection_register_controls_exist():
         repository
     )
 
-    # ========================================
-    # 実行：登録画面を開く
-    # ========================================
-
     window.show_collection_register()
-
-    # ========================================
-    # 確認：登録用の部品が存在する
-    # ========================================
 
     assert hasattr(window, "cd_owned_var")
     assert hasattr(window, "vinyl_owned_var")
     assert hasattr(window, "memo_entry")
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_collection_can_be_registered_from_register_screen():
     """
@@ -1227,15 +1051,7 @@ def test_collection_can_be_registered_from_register_screen():
     コレクションをDBへ登録できることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
 
     root = tk.Tk()
 
@@ -1243,10 +1059,6 @@ def test_collection_can_be_registered_from_register_screen():
         root,
         repository
     )
-
-    # ========================================
-    # 登録する作品情報を設定
-    # ========================================
 
     window.register_collection_data = {
         "musicbrainz_id": "test-001",
@@ -1258,15 +1070,7 @@ def test_collection_can_be_registered_from_register_screen():
         "formats": ["CD", "Vinyl"]
     }
 
-    # ========================================
-    # 登録画面を開く
-    # ========================================
-
     window.show_collection_register()
-
-    # ========================================
-    # 登録内容を入力
-    # ========================================
 
     window.cd_owned_var.set(True)
     window.vinyl_owned_var.set(False)
@@ -1276,15 +1080,7 @@ def test_collection_can_be_registered_from_register_screen():
         "名盤"
     )
 
-    # ========================================
-    # 実行：コレクションを登録
-    # ========================================
-
     window.register_collection()
-
-    # ========================================
-    # 確認：DBへ登録されている
-    # ========================================
 
     collection = repository.get_collection("test-001")
 
@@ -1296,11 +1092,8 @@ def test_collection_can_be_registered_from_register_screen():
     assert collection[8] == 0
     assert collection[9] == "名盤"
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_registered_collection_is_reflected_in_list(root):
     """
@@ -1308,22 +1101,13 @@ def test_registered_collection_is_reflected_in_list(root):
     登録した作品が一覧に表示されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # 準備：MainWindowを作成
-    # ========================================
 
     window = MainWindow(
         root,
         repository
     )
 
-    # 登録する作品情報を設定する
     window.register_collection_data = {
         "musicbrainz_id": "test-001",
         "artist_name": "Queen",
@@ -1334,15 +1118,7 @@ def test_registered_collection_is_reflected_in_list(root):
         "formats": ["CD", "Vinyl"]
     }
 
-    # ========================================
-    # 登録画面を開く
-    # ========================================
-
     window.show_collection_register()
-
-    # ========================================
-    # 登録内容を入力する
-    # ========================================
 
     window.cd_owned_var.set(True)
     window.vinyl_owned_var.set(False)
@@ -1352,21 +1128,9 @@ def test_registered_collection_is_reflected_in_list(root):
         "名盤"
     )
 
-    # ========================================
-    # 実行：コレクションを登録する
-    # ========================================
-
     window.register_collection()
 
-    # ========================================
-    # 登録後の一覧を表示する
-    # ========================================
-
     window.show_collections()
-
-    # ========================================
-    # 確認：登録した作品が一覧に表示される
-    # ========================================
 
     items = window.collection_listbox.get(0, tk.END)
 
@@ -1374,20 +1138,13 @@ def test_registered_collection_is_reflected_in_list(root):
     assert "Queen" in items[0]
     assert "A Night at the Opera" in items[0]
 
+
 def test_collection_register_screen_has_register_button():
     """
     コレクション登録画面に登録ボタンが存在することを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # 準備：Tkinterの画面を作成
-    # ========================================
 
     root = tk.Tk()
 
@@ -1396,7 +1153,6 @@ def test_collection_register_screen_has_register_button():
         repository
     )
 
-    # 登録する作品情報を設定する
     window.register_collection_data = {
         "musicbrainz_id": "test-001",
         "artist_name": "Queen",
@@ -1407,23 +1163,12 @@ def test_collection_register_screen_has_register_button():
         "formats": ["CD", "Vinyl"]
     }
 
-    # ========================================
-    # 実行：登録画面を開く
-    # ========================================
-
     window.show_collection_register()
-
-    # ========================================
-    # 確認：登録ボタンが存在する
-    # ========================================
 
     assert hasattr(window, "register_button")
 
-    # ========================================
-    # 後片付け
-    # ========================================
-
     root.destroy()
+
 
 def test_album_search_results_can_be_displayed(root, monkeypatch):
     """
@@ -1431,15 +1176,7 @@ def test_album_search_results_can_be_displayed(root, monkeypatch):
     検索結果がGUIの一覧に表示されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # MusicBrainz APIの検索結果を用意する
-    # ========================================
 
     class FakeMusicBrainzAPI:
 
@@ -1458,39 +1195,25 @@ def test_album_search_results_can_be_displayed(root, monkeypatch):
         FakeMusicBrainzAPI
     )
 
-    # ========================================
-    # MainWindowを作成
-    # ========================================
-
     window = MainWindow(
         root,
         repository
     )
 
-    # ========================================
-    # アルバム検索を設定
-    # ========================================
-
     window.search_target.set("アルバム")
+
     window.search_entry.insert(
         0,
         "A Night at the Opera"
     )
 
-    # ========================================
-    # 検索を実行
-    # ========================================
-
     window.search()
-
-    # ========================================
-    # 確認：検索結果が表示されている
-    # ========================================
 
     items = window.result_listbox.get(0, tk.END)
 
     assert len(items) == 1
     assert "A Night at the Opera" in items[0]
+
 
 def test_track_search_results_can_be_displayed(root, monkeypatch):
     """
@@ -1498,15 +1221,7 @@ def test_track_search_results_can_be_displayed(root, monkeypatch):
     検索結果がGUIの一覧に表示されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # MusicBrainz APIの検索結果を用意する
-    # ========================================
 
     class FakeMusicBrainzAPI:
 
@@ -1525,39 +1240,25 @@ def test_track_search_results_can_be_displayed(root, monkeypatch):
         FakeMusicBrainzAPI
     )
 
-    # ========================================
-    # MainWindowを作成
-    # ========================================
-
     window = MainWindow(
         root,
         repository
     )
 
-    # ========================================
-    # トラック検索を設定
-    # ========================================
-
     window.search_target.set("トラック")
+
     window.search_entry.insert(
         0,
         "Bohemian Rhapsody"
     )
 
-    # ========================================
-    # 検索を実行
-    # ========================================
-
     window.search()
-
-    # ========================================
-    # 確認：検索結果が表示されている
-    # ========================================
 
     items = window.result_listbox.get(0, tk.END)
 
     assert len(items) == 1
     assert "Bohemian Rhapsody" in items[0]
+
 
 def test_keyword_search_results_can_be_displayed(root, monkeypatch):
     """
@@ -1565,15 +1266,7 @@ def test_keyword_search_results_can_be_displayed(root, monkeypatch):
     Artist、Album、Trackの検索結果がGUIの一覧に表示されることを確認する。
     """
 
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
     repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # MusicBrainz APIの検索結果を用意する
-    # ========================================
 
     class FakeMusicBrainzAPI:
 
@@ -1604,34 +1297,19 @@ def test_keyword_search_results_can_be_displayed(root, monkeypatch):
         FakeMusicBrainzAPI
     )
 
-    # ========================================
-    # MainWindowを作成
-    # ========================================
-
     window = MainWindow(
         root,
         repository
     )
 
-    # ========================================
-    # キーワード検索を設定
-    # ========================================
-
     window.search_target.set("キーワード")
+
     window.search_entry.insert(
         0,
         "Queen"
     )
 
-    # ========================================
-    # 検索を実行
-    # ========================================
-
     window.search()
-
-    # ========================================
-    # 確認：検索結果が表示されている
-    # ========================================
 
     items = window.result_listbox.get(0, tk.END)
 
@@ -1640,10 +1318,59 @@ def test_keyword_search_results_can_be_displayed(root, monkeypatch):
     assert "A Night at the Opera" in items[1]
     assert "Bohemian Rhapsody" in items[2]
 
+
 def test_selected_album_search_result_can_be_retrieved(root, monkeypatch):
     """
     アルバム検索結果から作品を選択すると、
     選択した検索結果を取得できることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+
+    result = window.get_selected_search_result()
+
+    assert result is not None
+    assert result["id"] == "release-group-001"
+    assert result["title"] == "A Night at the Opera"
+
+
+def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    選択した作品の詳細情報が表示されることを確認する。
     """
 
     # ========================================
@@ -1668,81 +1395,15 @@ def test_selected_album_search_result_can_be_retrieved(root, monkeypatch):
                 ]
             }
 
-    monkeypatch.setattr(
-        "gui.MusicBrainzAPI",
-        FakeMusicBrainzAPI
-    )
+        def get_release_group(self, musicbrainz_id):
+            assert musicbrainz_id == "release-group-001"
 
-    # ========================================
-    # MainWindowを作成
-    # ========================================
-
-    window = MainWindow(
-        root,
-        repository
-    )
-
-    # ========================================
-    # アルバム検索を設定
-    # ========================================
-
-    window.search_target.set("アルバム")
-
-    window.search_entry.insert(
-        0,
-        "A Night at the Opera"
-    )
-
-    # ========================================
-    # 検索を実行
-    # ========================================
-
-    window.search()
-
-    # ========================================
-    # 1件目を選択する
-    # ========================================
-
-    window.result_listbox.selection_set(0)
-
-    # ========================================
-    # 選択した検索結果を取得する
-    # ========================================
-
-    result = window.get_selected_search_result()
-
-    # ========================================
-    # 確認：選択した作品が取得できる
-    # ========================================
-
-    assert result is not None
-    assert result["id"] == "release-group-001"
-    assert result["title"] == "A Night at the Opera"
-
-def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
-    """
-    アルバム検索結果から作品を選択すると、
-    選択した作品名が詳細欄に表示されることを確認する。
-    """
-
-    # ========================================
-    # 準備：Repositoryを作成
-    # ========================================
-
-    repository = CollectionRepository(":memory:")
-
-    # ========================================
-    # MusicBrainz APIの検索結果を用意する
-    # ========================================
-
-    class FakeMusicBrainzAPI:
-
-        def search_release_group(self, album_name):
             return {
-                "release-groups": [
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
                     {
-                        "id": "release-group-001",
-                        "title": "A Night at the Opera"
+                        "name": "Queen"
                     }
                 ]
             }
@@ -1791,10 +1452,10 @@ def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
     window.on_result_selected(None)
 
     # ========================================
-    # 確認：作品名が詳細欄に表示されている
+    # 確認：作品名とアーティスト名が表示される
     # ========================================
 
     detail_text = window.detail_label.cget("text")
 
     assert "A Night at the Opera" in detail_text
-    
+    assert "Queen" in detail_text
