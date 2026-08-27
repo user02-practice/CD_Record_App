@@ -311,14 +311,15 @@ def test_collections_can_be_retrieved():
     # 2件取得できることを確認
     assert len(collections) == 2
 
-    # 登録した内容を確認
-    assert collections[0][0] == "test-001"
-    assert collections[0][1] == "Queen"
-    assert collections[0][2] == "A Night at the Opera"
+    # 後から登録した作品が先に取得されることを確認する
+    assert collections[0][0] == "test-002"
+    assert collections[0][1] == "The Beatles"
+    assert collections[0][2] == "Abbey Road"
 
-    assert collections[1][0] == "test-002"
-    assert collections[1][1] == "The Beatles"
-    assert collections[1][2] == "Abbey Road"
+    # 先に登録した作品はその次に取得される
+    assert collections[1][0] == "test-001"
+    assert collections[1][1] == "Queen"
+    assert collections[1][2] == "A Night at the Opera"
 
 def test_get_collections_returns_empty_list_when_no_collections():
     """コレクションが登録されていない場合、空のリストが返ること"""
@@ -513,8 +514,8 @@ def test_collections_can_be_searched_by_keyword():
 
     assert len(results) == 2
 
-    assert results[0][0] == "test-001"
-    assert results[1][0] == "test-003"
+    assert results[0][0] == "test-003"
+    assert results[1][0] == "test-001"
 
 
 def test_collections_can_be_searched_by_release_name():
@@ -759,9 +760,9 @@ def test_search_collections_returns_all_collections_when_keyword_is_empty():
 
     assert len(results) == 3
 
-    assert results[0][0] == "test-001"
+    assert results[0][0] == "test-003"
     assert results[1][0] == "test-002"
-    assert results[2][0] == "test-003"
+    assert results[2][0] == "test-001"
 
 def test_collections_can_be_filtered_by_cd_owned():
     """
@@ -829,8 +830,8 @@ def test_collections_can_be_filtered_by_cd_owned():
 
     assert len(results) == 2
 
-    assert results[0][0] == "test-001"
-    assert results[1][0] == "test-002"
+    assert results[0][0] == "test-002"
+    assert results[1][0] == "test-001"
 
 def test_collections_can_be_filtered_by_vinyl_owned():
     """
@@ -898,8 +899,8 @@ def test_collections_can_be_filtered_by_vinyl_owned():
 
     assert len(results) == 2
 
-    assert results[0][0] == "test-002"
-    assert results[1][0] == "test-003"
+    assert results[0][0] == "test-003"
+    assert results[1][0] == "test-002"
 
 def test_get_collections_by_cd_owned_returns_empty_list_when_no_match():
     """
@@ -1323,8 +1324,8 @@ def test_filter_collections_returns_all_collections_when_no_conditions():
     # ========================================
 
     assert len(results) == 2
-    assert results[0][0] == "test-001"
-    assert results[1][0] == "test-002"
+    assert results[0][0] == "test-002"
+    assert results[1][0] == "test-001"
 
 def test_collection_can_be_registered_with_jacket_url():
     """ジャケット画像URLを含むコレクションを登録・取得できること"""
@@ -1348,3 +1349,58 @@ def test_collection_can_be_registered_with_jacket_url():
     result = repository.get_collection("test-jacket-001")
 
     assert result[7] == "https://example.com/jacket.jpg"
+
+def test_collections_are_returned_newest_first():
+    """
+    コレクション一覧を取得したとき、
+    新しく登録した作品が先に返ることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # 1件目を登録する
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # 2件目を登録する
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD", "Vinyl"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：コレクション一覧を取得する
+    # ========================================
+
+    collections = repository.get_collections()
+
+    # ========================================
+    # 確認：後から登録した作品が先に返る
+    # ========================================
+
+    assert collections[0][0] == "test-002"
+    assert collections[1][0] == "test-001"

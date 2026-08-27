@@ -1,5 +1,6 @@
 import tkinter as tk
 import pytest
+import requests
 
 from collection_repository import CollectionRepository
 from gui import MainWindow
@@ -2444,7 +2445,9 @@ def test_collection_delete_button_refreshes_list(root,monkeypatch):
     window.show_collections()
 
     # Queenを選択する
-    window.collection_listbox.selection_set(0)
+    # コレクションは登録日時の新しい順に表示されるため、
+    # 先に登録したQueenは1番目になる
+    window.collection_listbox.selection_set(1)
     window.show_selected_collection_detail()
 
     monkeypatch.setattr(
@@ -2583,3 +2586,158 @@ def test_collection_delete_is_executed_when_confirmation_is_yes(
     window.collection_delete_button.invoke()
 
     assert repository.get_collection("test-001") is None
+def test_selected_collection_detail_displays_jacket_image(root, monkeypatch):
+    """
+    コレクション詳細画面を表示したとき、
+    保存されているジャケット画像URLが
+    ジャケット画像表示処理へ渡されることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    # ジャケット画像URLを含むコレクションを登録する
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url="https://example.com/jacket.jpg",
+        cd_owned=1,
+        vinyl_owned=0,
+        memo="名盤"
+    )
+
+    # メイン画面を作成する
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # ジャケット画像の通信処理を置き換える
+    # ========================================
+
+    # 実際の画像取得は行わず、
+    # load_jacket_image() に渡されたURLだけを記録する
+    loaded_urls = []
+
+    monkeypatch.setattr(
+        window,
+        "load_jacket_image",
+        lambda jacket_url: loaded_urls.append(jacket_url)
+    )
+
+    # ========================================
+    # 実行：コレクション詳細を表示する
+    # ========================================
+
+    window.show_collections()
+
+    # 一覧の1件目を選択する
+    window.collection_listbox.selection_set(0)
+
+    # 選択したコレクションの詳細を表示する
+    window.show_selected_collection_detail()
+
+    # ========================================
+    # 確認：保存されたジャケットURLが使用される
+    # ========================================
+
+    assert loaded_urls == [
+        "https://example.com/jacket.jpg"
+    ]
+
+def test_load_jacket_image_shows_no_image_when_request_fails(root, monkeypatch):
+    """
+    ジャケット画像の取得に失敗した場合でも、
+    アプリがエラーで終了せず「画像なし」と表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：MainWindowを作成する
+    # ========================================
+
+    window = MainWindow(
+        root,
+        CollectionRepository(":memory:")
+    )
+
+    # ========================================
+    # 通信エラーを発生させる
+    # ========================================
+
+    def raise_request_error(*args, **kwargs):
+        raise requests.exceptions.RequestException()
+
+    monkeypatch.setattr(
+        "gui.requests.get",
+        raise_request_error
+    )
+
+    # ========================================
+    # 実行：ジャケット画像を読み込む
+    # ========================================
+
+    window.load_jacket_image(
+        "https://example.com/jacket.jpg"
+    )
+
+    # ========================================
+    # 確認：画像なし表示になる
+    # ========================================
+
+    assert window.jacket_image is None
+    assert window.jacket_image_label.cget("text") == "画像なし"
+
+def test_load_jacket_image_shows_no_image_when_image_data_is_invalid(root, monkeypatch):
+    """
+    ジャケット画像の通信には成功しても、
+    取得したデータが画像として読み込めない場合は
+    「画像なし」と表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：MainWindowを作成する
+    # ========================================
+
+    window = MainWindow(
+        root,
+        CollectionRepository(":memory:")
+    )
+
+    # ========================================
+    # 壊れた画像データを返すレスポンスを用意する
+    # ========================================
+
+    class FakeResponse:
+        content = b"not-image-data"
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr(
+        "gui.requests.get",
+        lambda *args, **kwargs: FakeResponse()
+    )
+
+    # ========================================
+    # 実行：ジャケット画像を読み込む
+    # ========================================
+
+    window.load_jacket_image(
+        "https://example.com/jacket.jpg"
+    )
+
+    # ========================================
+    # 確認：画像なし表示になる
+    # ========================================
+
+    assert window.jacket_image is None
+    assert window.jacket_image_label.cget("text") == "画像なし"

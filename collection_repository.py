@@ -53,7 +53,8 @@ class CollectionRepository:
                 jacket_url TEXT,
                 cd_owned INTEGER NOT NULL DEFAULT 0,
                 vinyl_owned INTEGER NOT NULL DEFAULT 0,
-                memo TEXT
+                memo TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
@@ -238,7 +239,7 @@ class CollectionRepository:
                 vinyl_owned,
                 memo
             FROM collections
-            ORDER BY id
+            ORDER BY created_at DESC, id DESC
         """)
 
         # 検索結果をすべて取得する
@@ -295,7 +296,7 @@ class CollectionRepository:
                 memo
             FROM collections
             WHERE cd_owned = 1
-            ORDER BY id
+            ORDER BY created_at DESC, id DESC
         """)
 
         # 検索結果をすべて取得する
@@ -350,7 +351,7 @@ class CollectionRepository:
                 memo
             FROM collections
             WHERE vinyl_owned = 1
-            ORDER BY id
+            ORDER BY created_at DESC, id DESC
         """)
 
         # 検索結果をすべて取得する
@@ -410,7 +411,7 @@ class CollectionRepository:
             FROM collections
             WHERE artist_name LIKE ?
                OR release_name LIKE ?
-            ORDER BY id
+            ORDER BY created_at DESC, id DESC
         """, (
             f"%{keyword}%",
             f"%{keyword}%"
@@ -569,8 +570,8 @@ class CollectionRepository:
             sql += " WHERE " + " AND ".join(conditions)
 
         # 登録順で並べる
-        sql += " ORDER BY id"
-
+        sql += " ORDER BY created_at DESC, id DESC"
+        
         # SQLを実行する
         cursor = self.conn.cursor()
         cursor.execute(sql, parameters)

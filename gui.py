@@ -852,8 +852,13 @@ class MainWindow:
         artist_name = collection[1]
         release_name = collection[2]
 
+        # ジャケット画像URLを取得する
+        jacket_url = collection[7]
+
+        # 保存されているジャケット画像URLを使って画像を表示する
+        self.load_jacket_image(jacket_url)
+
         # コレクションの所有状態とメモを取得する
-        # collection[7] はジャケット画像URL
         cd_owned = collection[8]
         vinyl_owned = collection[9]
         memo = collection[10]
@@ -954,6 +959,7 @@ class MainWindow:
         ジャケット画像を取得して表示する。
         """
 
+        # ジャケット画像URLがない場合
         if not jacket_url:
             self.jacket_image = None
             self.jacket_image_label.config(
@@ -962,24 +968,41 @@ class MainWindow:
             )
             return
 
-        response = requests.get(
-            jacket_url,
-            timeout=10
-        )
-        response.raise_for_status()
+        try:
+            # ジャケット画像を取得する
+            response = requests.get(
+                jacket_url,
+                timeout=10
+            )
 
-        image = Image.open(
-            BytesIO(response.content)
-        )
+            # HTTPエラーがある場合は例外を発生させる
+            response.raise_for_status()
 
-        image.thumbnail((300, 300))
+            # 取得した画像データを開く
+            image = Image.open(
+                BytesIO(response.content)
+            )
 
-        self.jacket_image = ImageTk.PhotoImage(image)
+            # 表示サイズを調整する
+            image.thumbnail((300, 300))
 
-        self.jacket_image_label.config(
-            image=self.jacket_image,
-            text=""
-        )
+            # Tkinterで表示できる画像に変換する
+            self.jacket_image = ImageTk.PhotoImage(image)
+
+            # ジャケット画像を表示する
+            self.jacket_image_label.config(
+                image=self.jacket_image,
+                text=""
+            )
+
+        except (requests.exceptions.RequestException, OSError):
+            # 通信エラーや画像データの読み込みに失敗した場合は
+            # 「画像なし」と表示する
+            self.jacket_image = None
+            self.jacket_image_label.config(
+                image="",
+                text="画像なし"
+            )
 
 
 def main():
