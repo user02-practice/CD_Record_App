@@ -626,3 +626,41 @@ def test_search_keyword_raises_error_when_api_returns_error():
     with pytest.raises(requests.HTTPError):
         api.search_keyword("Queen")
 
+
+def test_get_release_group():
+    """
+    MusicBrainz IDを指定すると、
+    Release Groupの詳細情報を取得できることを確認する。
+    """
+
+    api = MusicBrainzAPI()
+
+    # テスト用のMusicBrainz ID
+    musicbrainz_id = "test-release-group-id"
+
+    # API通信をモックする
+    with patch("musicbrainz_api.requests.get") as mock_get:
+
+        # APIから返ってくるデータを設定する
+        mock_response = Mock()
+
+        mock_response.json.return_value = {
+            "id": musicbrainz_id,
+            "title": "A Night at the Opera",
+            "first-release-date": "1975-11-21"
+        }
+
+        mock_response.raise_for_status.return_value = None
+
+        mock_get.return_value = mock_response
+
+        # Release Groupを取得する
+        result = api.get_release_group(musicbrainz_id)
+
+    # ========================================
+    # 確認
+    # ========================================
+
+    assert result["id"] == musicbrainz_id
+    assert result["title"] == "A Night at the Opera"
+    assert result["first-release-date"] == "1975-11-21"

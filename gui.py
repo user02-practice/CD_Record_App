@@ -1,7 +1,9 @@
 import tkinter as tk
 import requests
+from io import BytesIO
 from tkinter import ttk, messagebox
 
+from PIL import Image, ImageTk
 from musicbrainz_api import MusicBrainzAPI
 
 
@@ -115,6 +117,14 @@ class MainWindow:
 
         self.result_listbox.pack()
 
+        # ジャケット画像
+        self.jacket_image_label = tk.Label(
+            self.root,
+            text="ジャケット画像"
+        )
+
+        self.jacket_image_label.pack()
+
         # 作品情報
         self.detail_label = tk.Label(
             self.root,
@@ -122,6 +132,15 @@ class MainWindow:
         )
 
         self.detail_label.pack()
+
+        # コレクション登録ボタン
+        self.collection_register_button = tk.Button(
+            self.root,
+            text="コレクションに登録",
+            command=self.register_selected_collection
+        )
+
+        self.collection_register_button.pack()
 
         # ========================================
         # コレクション検索
@@ -213,6 +232,80 @@ class MainWindow:
                         tk.END,
                         artist.get("name")
                     )
+            # アルバム検索
+            elif search_target == "アルバム":
+                result = api.search_release_group(keyword)
+
+                # 検索結果を取得する
+                release_groups = result.get("release-groups", [])
+                self.search_results = release_groups
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # 検索結果を画面に表示する
+                for release_group in release_groups:
+                    self.result_listbox.insert(
+                        tk.END,
+                        release_group.get("title")
+                    )
+
+            # トラック検索
+            elif search_target == "トラック":
+                result = api.search_track(keyword)
+
+                # 検索結果を取得する
+                recordings = result.get("recordings", [])
+                self.search_results = recordings
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # 検索結果を画面に表示する
+                for recording in recordings:
+                    self.result_listbox.insert(
+                        tk.END,
+                        recording.get("title")
+                    )
+
+            # キーワード検索
+            elif search_target == "キーワード":
+                result = api.search_keyword(keyword)
+
+                # 検索結果を取得する
+                artists = result.get("artists", [])
+                release_groups = result.get("release-groups", [])
+                recordings = result.get("recordings", [])
+
+                self.search_results = (
+                    artists
+                    + release_groups
+                    + recordings
+                )
+
+                # 以前の検索結果を削除する
+                self.result_listbox.delete(0, tk.END)
+
+                # Artistの検索結果を表示する
+                for artist in artists:
+                    self.result_listbox.insert(
+                        tk.END,
+                        artist.get("name")
+                    )
+
+                # Albumの検索結果を表示する
+                for release_group in release_groups:
+                    self.result_listbox.insert(
+                        tk.END,
+                        release_group.get("title")
+                    )
+
+                # Trackの検索結果を表示する
+                for recording in recordings:
+                    self.result_listbox.insert(
+                        tk.END,
+                        recording.get("title")
+                    )
 
         except requests.exceptions.RequestException:
             print("MusicBrainzへの接続に失敗しました。")
@@ -293,19 +386,15 @@ class MainWindow:
         # 選択された番号を取得する
         index = selection[0]
 
-        # 検索結果から選択されたアーティストを取得する
-        artist = self.search_results[index]
+        # 選択された検索結果を取得する
+        result = self.search_results[index]
 
         # MusicBrainz IDを取得する
-        musicbrainz_id = artist.get("id")
-
-        # 確認のためコンソールに表示する
-        print(musicbrainz_id)
-        print(artist.get("name"))
+        musicbrainz_id = result.get("id")
 
         try:
-            release_groups = api.search_release_group(
-                artist.get("name")
+            release_group = api.get_release_group(
+                musicbrainz_id
             )
 
         except requests.exceptions.RequestException:
@@ -315,22 +404,170 @@ class MainWindow:
             )
             return
 
-        print(release_groups)
-        print(release_groups.get("release-groups", []))
+        # アーティスト名を取得する
+        artist_credit = release_group.get("artist-credit", [])
 
-        release_group_list = release_groups.get(
-            "release-groups",
-            []
+        if artist_credit:
+            artist_name = artist_credit[0].get("name", "")
+        else:
+            artist_name = ""
+
+        # リリース日を取得する
+        release_date = release_group.get("first-release-date", "")
+
+        # ジャケット画像URLを取得する
+        self.jacket_url = release_group.get("jacket_url", "")
+
+        # ジャケット画像を表示する
+        self.load_jacket_image(self.jacket_url)
+        # フォーマットを取得する
+        formats = []
+
+        for release in release_group.get("releases", []):
+            for media in release.get("media", []):
+                format_name = media.get("format")
+
+                if format_name and format_name not in formats:
+                    formats.append(format_name)
+
+        format_text = ", ".join(formats)
+
+        # レーベルを取得する
+        labels = []
+
+        for release in release_group.get("releases", []):
+            for label_info in release.get("label-info", []):
+                label = label_info.get("label")
+
+                if label:
+                    label_name = label.get("name")
+
+                    if label_name and label_name not in labels:
+                        labels.append(label_name)
+
+        label_text = ", ".join(labels)
+
+        # 国を取得する
+        countries = []
+
+        for release in release_group.get("releases", []):
+            country = release.get("country")
+
+            if country and country not in countries:
+                countries.append(country)
+
+        country_text = ", ".join(countries)
+
+        # 詳細欄に作品名、アーティスト名、リリース日、フォーマット、レーベル、国を表示する
+        self.detail_label.config(
+            text=(
+                f"アーティスト：{artist_name}\n"
+                f"作品名：{release_group.get('title')}\n"
+                f"リリース日：{release_date}\n"
+                f"フォーマット：{format_text}\n"
+                f"レーベル：{label_text}\n"
+                f"国：{country_text}"
+            )
         )
 
-        if release_group_list:
-            release_group = release_group_list[0]
+    def register_selected_collection(self):
+        """
+        選択した作品をコレクションに登録する。
+        """
 
-            print(release_group.get("title"))
+        # 選択された検索結果を取得する
+        selection = self.result_listbox.curselection()
 
-            self.detail_label.config(
-                text=f"作品名：{release_group.get('title')}"
-            )
+        if not selection:
+            return
+
+        # 選択された検索結果を取得する
+        index = selection[0]
+        result = self.search_results[index]
+
+        # MusicBrainz IDを取得する
+        musicbrainz_id = result.get("id")
+
+        # すでにコレクションに登録されているか確認する
+        if self.repository.get_collection(musicbrainz_id) is not None:
+            return
+
+        # 詳細情報を取得する
+        api = MusicBrainzAPI()
+        release_group = api.get_release_group(
+            musicbrainz_id
+        )
+
+        # アーティスト名を取得する
+        artist_credit = release_group.get("artist-credit", [])
+
+        if artist_credit:
+            artist_name = artist_credit[0].get("name", "")
+        else:
+            artist_name = ""
+
+        # 作品名を取得する
+        release_name = release_group.get("title", "")
+
+        # リリース日を取得する
+        release_date = release_group.get(
+            "first-release-date",
+            ""
+        )
+
+        # ジャケット画像URLを取得する
+        jacket_url = release_group.get(
+            "jacket_url",
+            ""
+        )
+
+        # フォーマットを取得する
+        formats = []
+
+        for release in release_group.get("releases", []):
+            for media in release.get("media", []):
+                format_name = media.get("format")
+
+                if format_name and format_name not in formats:
+                    formats.append(format_name)
+
+        # レーベルを取得する
+        labels = []
+
+        for release in release_group.get("releases", []):
+            for label_info in release.get("label-info", []):
+                label = label_info.get("label")
+
+                if label:
+                    label_name = label.get("name")
+
+                    if label_name and label_name not in labels:
+                        labels.append(label_name)
+
+        # 国を取得する
+        countries = []
+
+        for release in release_group.get("releases", []):
+            country = release.get("country")
+
+            if country and country not in countries:
+                countries.append(country)
+
+        # 登録画面へ渡す作品情報を保存する
+        self.register_collection_data = {
+            "musicbrainz_id": musicbrainz_id,
+            "artist_name": artist_name,
+            "release_name": release_name,
+            "label": ", ".join(labels),
+            "release_date": release_date,
+            "country": ", ".join(countries),
+            "formats": formats,
+            "jacket_url": jacket_url
+        }
+
+        # コレクション登録画面を表示する
+        self.show_collection_register()
+
 
     def on_collection_filter_changed(self, event=None):
         """
@@ -375,6 +612,29 @@ class MainWindow:
         else:
 
             self.filter_collection_list()
+
+    def get_selected_search_result(self):
+        """
+        検索結果一覧で選択されている検索結果を取得する。
+
+        Returns:
+            dict or None:
+                選択されている検索結果。
+                選択されていない場合はNone。
+        """
+
+        # 検索結果一覧で選択されている項目を取得する
+        selection = self.result_listbox.curselection()
+
+        # 何も選択されていない場合
+        if not selection:
+            return None
+
+        # 選択された一覧の番号を取得する
+        index = selection[0]
+
+        # 検索結果から選択された項目を返す
+        return self.search_results[index]
 
     def get_selected_collection(self):
         """
@@ -479,6 +739,102 @@ class MainWindow:
 
         self.update_button.pack()
 
+    def show_collection_register(self):
+        """
+        コレクションの登録画面を表示する。
+        """
+
+        # ========================================
+        # 登録用の値を作成する
+        # ========================================
+
+        # 初期状態ではCDを所有していない
+        self.cd_owned_var = tk.BooleanVar(
+            value=False
+        )
+
+        # 初期状態ではVinylを所有していない
+        self.vinyl_owned_var = tk.BooleanVar(
+            value=False
+        )
+
+        # ========================================
+        # CD所有チェックボックス
+        # ========================================
+
+        self.cd_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="CD所有",
+            variable=self.cd_owned_var
+        )
+
+        self.cd_owned_checkbutton.pack()
+
+        # ========================================
+        # Vinyl所有チェックボックス
+        # ========================================
+
+        self.vinyl_owned_checkbutton = ttk.Checkbutton(
+            self.root,
+            text="Vinyl所有",
+            variable=self.vinyl_owned_var
+        )
+
+        self.vinyl_owned_checkbutton.pack()
+
+        # ========================================
+        # メモ入力欄
+        # ========================================
+
+        self.memo_entry = ttk.Entry(
+            self.root,
+            width=50
+        )
+
+        self.memo_entry.pack()
+
+        # ========================================
+        # 登録ボタン
+        # ========================================
+
+        self.register_button = ttk.Button(
+            self.root,
+            text="登録",
+            command=self.register_collection
+        )
+
+        self.register_button.pack()
+
+    def register_collection(self):
+        """
+        登録画面で入力された内容を使って
+        コレクションをDBへ登録する。
+        """
+
+        # 登録する作品情報を取得する
+        data = self.register_collection_data
+
+        # 登録画面で入力された所有状態を取得する
+        cd_owned = int(self.cd_owned_var.get())
+        vinyl_owned = int(self.vinyl_owned_var.get())
+
+        # 登録画面で入力されたメモを取得する
+        memo = self.memo_entry.get()
+
+        # Repositoryへコレクションを登録する
+        self.repository.add_collection(
+            musicbrainz_id=data["musicbrainz_id"],
+            artist_name=data["artist_name"],
+            release_name=data["release_name"],
+            label=data["label"],
+            release_date=data["release_date"],
+            country=data["country"],
+            formats=data["formats"],
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned,
+            memo=memo
+        )
+
     def show_selected_collection_detail(self):
         """
         選択されているコレクションの詳細を表示する。
@@ -510,6 +866,45 @@ class MainWindow:
                  f"Vinyl所有：{vinyl_owned_text}\n"
                  f"メモ：{memo or ''}"
         )
+
+        # コレクション削除ボタン
+        self.collection_delete_button = ttk.Button(
+            self.root,
+            text="コレクションから削除",
+            command=self.delete_collection
+        )
+
+        self.collection_delete_button.pack()
+
+    def delete_collection(self):
+        """
+        選択されているコレクションを削除する。
+        """
+
+        # 選択されているコレクションを取得する
+        collection = self.get_selected_collection()
+
+        # コレクションが選択されていない場合
+        if collection is None:
+            return
+
+        # 削除確認ダイアログを表示する
+        result = messagebox.askyesno(
+            "削除確認",
+            f"「{collection[2]}」を削除しますか？"
+        )
+
+        # キャンセルされた場合は削除しない
+        if not result:
+            return
+
+        # Repositoryを使って削除する
+        self.repository.delete_collection(
+            musicbrainz_id=collection[0]
+        )
+
+        # コレクション一覧を更新する
+        self.show_collections()
 
 
     def update_collection(self):
@@ -549,6 +944,38 @@ class MainWindow:
 
         # 詳細表示を更新する
         self.show_selected_collection_detail()
+
+    def load_jacket_image(self, jacket_url):
+        """
+        ジャケット画像を取得して表示する。
+        """
+
+        if not jacket_url:
+            self.jacket_image = None
+            self.jacket_image_label.config(
+                image="",
+                text="画像なし"
+            )
+            return
+
+        response = requests.get(
+            jacket_url,
+            timeout=10
+        )
+        response.raise_for_status()
+
+        image = Image.open(
+            BytesIO(response.content)
+        )
+
+        image.thumbnail((300, 300))
+
+        self.jacket_image = ImageTk.PhotoImage(image)
+
+        self.jacket_image_label.config(
+            image=self.jacket_image,
+            text=""
+        )
 
 
 def main():
