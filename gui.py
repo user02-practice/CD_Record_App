@@ -393,11 +393,15 @@ class MainWindow:
         else:
             artist_name = ""
 
-        # 詳細欄に作品名とアーティスト名を表示する
+        # リリース日を取得する
+        release_date = release_group.get("first-release-date", "")
+
+        # 詳細欄に作品名、アーティスト名、リリース日を表示する
         self.detail_label.config(
             text=(
                 f"アーティスト：{artist_name}\n"
-                f"作品名：{release_group.get('title')}"
+                f"作品名：{release_group.get('title')}\n"
+                f"リリース日：{release_date}"
             )
         )
 
