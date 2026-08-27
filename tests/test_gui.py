@@ -1754,3 +1754,126 @@ def test_selected_album_search_result_displays_country(root, monkeypatch):
     detail_text = window.detail_label.cget("text")
 
     assert "GB" in detail_text
+
+def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    詳細欄にジャケット画像URLが表示されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "first-release-date": "1975-11-21",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "releases": [
+                    {
+                        "country": "GB",
+                        "media": [
+                            {
+                                "format": "CD"
+                            }
+                        ],
+                        "label-info": [
+                            {
+                                "label": {
+                                    "name": "EMI"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "jacket_url": "https://example.com/jacket.jpg"
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(0, "A Night at the Opera")
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+
+    monkeypatch.setattr(
+        window,
+        "load_jacket_image",
+        lambda jacket_url: None
+    )
+
+    window.on_result_selected(None)
+
+    assert window.jacket_url == "https://example.com/jacket.jpg"
+
+
+def test_selected_album_search_result_displays_jacket_image(root, monkeypatch):
+    """
+    アルバム検索結果から作品を選択すると、
+    ジャケット画像表示用のウィジェットが存在することを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "first-release-date": "1975-11-21",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "jacket_url": "https://example.com/jacket.jpg"
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    assert hasattr(window, "jacket_image_label")

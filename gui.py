@@ -1,7 +1,9 @@
 import tkinter as tk
 import requests
+from io import BytesIO
 from tkinter import ttk, messagebox
 
+from PIL import Image, ImageTk
 from musicbrainz_api import MusicBrainzAPI
 
 
@@ -114,6 +116,14 @@ class MainWindow:
         )
 
         self.result_listbox.pack()
+
+        # ジャケット画像
+        self.jacket_image_label = tk.Label(
+            self.root,
+            text="ジャケット画像"
+        )
+
+        self.jacket_image_label.pack()
 
         # 作品情報
         self.detail_label = tk.Label(
@@ -396,6 +406,11 @@ class MainWindow:
         # リリース日を取得する
         release_date = release_group.get("first-release-date", "")
 
+        # ジャケット画像URLを取得する
+        self.jacket_url = release_group.get("jacket_url", "")
+
+        # ジャケット画像を表示する
+        self.load_jacket_image(self.jacket_url)
         # フォーマットを取得する
         formats = []
 
@@ -781,6 +796,38 @@ class MainWindow:
 
         # 詳細表示を更新する
         self.show_selected_collection_detail()
+
+    def load_jacket_image(self, jacket_url):
+        """
+        ジャケット画像を取得して表示する。
+        """
+
+        if not jacket_url:
+            self.jacket_image = None
+            self.jacket_image_label.config(
+                image="",
+                text="画像なし"
+            )
+            return
+
+        response = requests.get(
+            jacket_url,
+            timeout=10
+        )
+        response.raise_for_status()
+
+        image = Image.open(
+            BytesIO(response.content)
+        )
+
+        image.thumbnail((300, 300))
+
+        self.jacket_image = ImageTk.PhotoImage(image)
+
+        self.jacket_image_label.config(
+            image=self.jacket_image,
+            text=""
+        )
 
 
 def main():
