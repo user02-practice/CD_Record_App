@@ -2106,6 +2106,8 @@ def test_collection_register_button_registers_selected_album(
 
     window.collection_register_button.invoke()
 
+    window.register_button.invoke()
+
     collection = repository.get_collection(
         "release-group-001"
     )
@@ -2188,8 +2190,75 @@ def test_collection_register_button_does_not_duplicate_collection(
     window.on_result_selected(None)
 
     window.collection_register_button.invoke()
+    window.register_button.invoke()
+
     window.collection_register_button.invoke()
+    window.register_button.invoke()
 
     collections = repository.get_collections()
 
     assert len(collections) == 1
+
+def test_collection_register_button_opens_register_screen(
+        root,
+        monkeypatch
+):
+    """
+    詳細画面のコレクション登録ボタンを押すと、
+    コレクション登録画面が表示されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            return {
+                "id": "release-group-001",
+                "title": "A Night at the Opera",
+                "artist-credit": [
+                    {
+                        "name": "Queen"
+                    }
+                ],
+                "releases": [],
+                "jacket_url": ""
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+    window.on_result_selected(None)
+
+    window.collection_register_button.invoke()
+
+    assert hasattr(
+        window,
+        "register_collection_data"
+    )

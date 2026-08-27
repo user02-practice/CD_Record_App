@@ -553,19 +553,22 @@ class MainWindow:
             if country and country not in countries:
                 countries.append(country)
 
-        # Repositoryに登録する
-        self.repository.add_collection(
-            musicbrainz_id,
-            artist_name,
-            release_name,
-            ", ".join(labels),
-            release_date,
-            ", ".join(countries),
-            formats,
-            0,
-            0,
-            ""
-        )
+        # 登録画面へ渡す作品情報を保存する
+        self.register_collection_data = {
+            "musicbrainz_id": musicbrainz_id,
+            "artist_name": artist_name,
+            "release_name": release_name,
+            "label": ", ".join(labels),
+            "release_date": release_date,
+            "country": ", ".join(countries),
+            "formats": formats,
+            "jacket_url": jacket_url
+        }
+
+        # コレクション登録画面を表示する
+        self.show_collection_register()
+
+        
     def on_collection_filter_changed(self, event=None):
         """
         コレクションの所有フィルターが変更されたときの処理。
