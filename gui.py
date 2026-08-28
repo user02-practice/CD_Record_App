@@ -250,24 +250,49 @@ class MainWindow:
 
         sort_value = self.collection_sort.get()
 
-        # 登録日時の新しい順
-        if sort_value == "登録日時の新しい順":
-            collections = self.repository.get_collections()
+        # 現在の所有フィルターを取得する
+        filter_value = self.collection_filter.get()
 
-        # アーティスト名順
-        elif sort_value == "アーティスト名順":
-            collections = self.repository.get_collections(
-                sort_by="artist_name"
-            )
+        cd_owned = None
+        vinyl_owned = None
 
-        # アルバム名順
+        if filter_value == "CD所有":
+            cd_owned = True
+
+        elif filter_value == "Vinyl所有":
+            vinyl_owned = True
+
+        elif filter_value == "CD・Vinyl両方所有":
+            cd_owned = True
+            vinyl_owned = True
+
+        elif filter_value == "どちらも未所有":
+            cd_owned = False
+            vinyl_owned = False
+
+        # 並び替え方法を決める
+        if sort_value == "アーティスト名順":
+            sort_by = "artist_name"
+
         elif sort_value == "アルバム名順":
-            collections = self.repository.get_collections(
-                sort_by="release_name"
-            )
+            sort_by = "release_name"
 
         else:
-            collections = self.repository.get_collections()
+            sort_by = None
+
+        # 現在の検索条件を取得する
+        keyword = self.collection_search_entry.get()
+        search_target = self.collection_search_target.get()
+
+        # 検索・所有フィルター・並び替えをまとめて適用する
+        collections = self.repository.filter_collections(
+            keyword=keyword,
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned,
+            search_target=search_target,
+            sort_by=sort_by
+        )
+
 
         # 一覧をいったん空にする
         self.collection_listbox.delete(0, tk.END)

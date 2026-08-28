@@ -703,7 +703,8 @@ class CollectionRepository:
             keyword="",
             cd_owned=None,
             vinyl_owned=None,
-            search_target="キーワード"
+            search_target="キーワード",
+            sort_by=None
     ):
         """
         検索対象、キーワード、CD/Vinyl所有状態を組み合わせて
@@ -821,8 +822,15 @@ class CollectionRepository:
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
 
-        # 登録日時の新しい順で並べる
-        sql += " ORDER BY created_at DESC, id DESC"
+        # 並び替え方法を決める
+        if sort_by == "artist_name":
+            order_by = "artist_name ASC"
+        elif sort_by == "release_name":
+            order_by = "release_name ASC"
+        else:
+            order_by = "created_at DESC, id DESC"
+
+        sql += f" ORDER BY {order_by}"
 
         # ========================================
         # SQLを実行する

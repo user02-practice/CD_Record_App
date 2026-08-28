@@ -2921,6 +2921,7 @@ def test_collection_list_can_be_sorted_by_album_name(root):
     assert "Arrival" in items[1]
     assert "News of the World" in items[2]
 
+
 def test_collection_list_can_be_sorted_by_newest(root):
     """
     コレクション画面で「登録日時の新しい順」を選択したとき、
@@ -3373,3 +3374,172 @@ def test_collection_search_target_album_can_be_combined_with_vinyl_filter(root):
 
     assert len(items) == 1
     assert "The Beatles - Abbey Road" in items[0]
+
+def test_collection_list_can_be_filtered_by_cd_owned_and_sorted_by_artist(root):
+    """
+    CD所有で絞り込んだ状態で、
+    アーティスト名の昇順に並び替えられることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    # CD所有：Queen
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # CD所有：ABBA
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="ABBA",
+        release_name="Arrival",
+        label="Polar",
+        release_date="1976-10-11",
+        country="SE",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # CD未所有：The Beatles
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple Records",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["Vinyl"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # CD所有で絞り込む
+    window.collection_filter.set("CD所有")
+    window.on_collection_filter_changed()
+
+    # アーティスト名順に並び替える
+    window.collection_sort.set("アーティスト名順")
+    window.on_collection_sort_changed()
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 2
+    assert "ABBA" in items[0]
+    assert "Queen" in items[1]
+
+def test_collection_list_can_be_searched_filtered_and_sorted(root):
+    """
+    アーティスト検索とCD所有フィルターを使った状態で、
+    アーティスト名順に並び替えられることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    # Queen + CD所有
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # Queen + CD所有
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen II",
+        release_name="Queen II",
+        label="EMI",
+        release_date="1974-03-08",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # Queen + CD未所有
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="Queen Live",
+        release_name="Live Album",
+        label="EMI",
+        release_date="1980-01-01",
+        country="GB",
+        formats=["Vinyl"],
+        jacket_url=None,
+        cd_owned=0,
+        vinyl_owned=1,
+        memo=""
+    )
+
+    # Queenではない + CD所有
+    repository.add_collection(
+        musicbrainz_id="test-004",
+        artist_name="ABBA",
+        release_name="Arrival",
+        label="Polar",
+        release_date="1976-10-11",
+        country="SE",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.collection_search_target.set("アーティスト")
+    window.collection_search_entry.insert(0, "Queen")
+    window.collection_filter.set("CD所有")
+
+    window.filter_collection_list(
+        keyword="Queen",
+        cd_owned=True
+    )
+
+    window.collection_sort.set("アーティスト名順")
+    window.on_collection_sort_changed()
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 2
+    assert "Queen - A Night at the Opera" in items[0]
+    assert "Queen II - Queen II" in items[1]
