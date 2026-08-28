@@ -3543,3 +3543,58 @@ def test_collection_list_can_be_searched_filtered_and_sorted(root):
     assert len(items) == 2
     assert "Queen - A Night at the Opera" in items[0]
     assert "Queen II - Queen II" in items[1]
+
+def test_selected_collection_matches_sorted_list(root):
+    """
+    並び替え後に選択した作品と、
+    実際に取得されるコレクションが一致することを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    # 先にABBAを登録
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="ABBA",
+        release_name="Arrival",
+        label="Polar",
+        release_date="1976-10-11",
+        country="SE",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # 後からQueenを登録
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # アーティスト名順に並び替える
+    window.collection_sort.set("アーティスト名順")
+    window.on_collection_sort_changed()
+
+    # 一覧の先頭（ABBA）を選択
+    window.collection_listbox.selection_set(0)
+
+    collection = window.get_selected_collection()
+
+    assert collection[1] == "ABBA"
+    assert collection[2] == "Arrival"

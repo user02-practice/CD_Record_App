@@ -771,8 +771,50 @@ class MainWindow:
         # 選択された一覧の番号を取得する
         index = selection[0]
 
-        # Repositoryからコレクション一覧を取得する
-        collections = self.repository.get_collections()
+        # 現在の検索条件を取得する
+        keyword = self.collection_search_entry.get()
+        search_target = self.collection_search_target.get()
+
+        # 現在の所有フィルターを取得する
+        filter_value = self.collection_filter.get()
+
+        cd_owned = None
+        vinyl_owned = None
+
+        if filter_value == "CD所有":
+            cd_owned = True
+
+        elif filter_value == "Vinyl所有":
+            vinyl_owned = True
+
+        elif filter_value == "CD・Vinyl両方所有":
+            cd_owned = True
+            vinyl_owned = True
+
+        elif filter_value == "どちらも未所有":
+            cd_owned = False
+            vinyl_owned = False
+
+        # 現在の並び替え方法を取得する
+        sort_value = self.collection_sort.get()
+
+        if sort_value == "アーティスト名順":
+            sort_by = "artist_name"
+
+        elif sort_value == "アルバム名順":
+            sort_by = "release_name"
+
+        else:
+            sort_by = None
+
+        # 画面に表示されている条件と同じ一覧を取得する
+        collections = self.repository.filter_collections(
+            keyword=keyword,
+            cd_owned=cd_owned,
+            vinyl_owned=vinyl_owned,
+            search_target=search_target,
+            sort_by=sort_by
+        )
 
         # 選択されたコレクションを返す
         return collections[index]
