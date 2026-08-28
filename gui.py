@@ -583,10 +583,18 @@ class MainWindow:
         release_date = release_group.get("first-release-date", "")
 
         # ジャケット画像URLを取得する
-        self.jacket_url = release_group.get("jacket_url", "")
+        self.jacket_url = ""
 
+        if releases:
+            release_id = releases[0].get("id")
+
+            self.jacket_url = api.get_cover_art_url(
+                release_id
+            )
+            
         # ジャケット画像を表示する
         self.load_jacket_image(self.jacket_url)
+
         # フォーマットを取得する
         formats = []
 

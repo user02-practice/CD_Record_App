@@ -1615,6 +1615,9 @@ def test_selected_album_search_result_displays_format(root, monkeypatch):
                 ]
             }
 
+        def get_cover_art_url(self, release_id):
+            return "https://example.com/jacket.jpg"
+
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
         FakeMusicBrainzAPI
@@ -1720,6 +1723,9 @@ def test_selected_album_search_result_displays_label(root, monkeypatch):
                     }
                 ]
             }
+
+        def get_cover_art_url(self, release_id):
+            return "https://example.com/jacket.jpg"
 
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
@@ -1828,6 +1834,9 @@ def test_selected_album_search_result_displays_country(root, monkeypatch):
                 ]
             }
 
+        def get_cover_art_url(self, release_id):
+            return "https://example.com/jacket.jpg"
+
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
         FakeMusicBrainzAPI
@@ -1877,8 +1886,15 @@ def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
 
         def get_releases(self, musicbrainz_id):
             return {
-                "releases": []
+                "releases": [
+                    {
+                        "id": "release-001"
+                    }
+                ]
             }
+
+        def get_cover_art_url(self, release_id):
+            return "https://example.com/jacket.jpg"
 
         def get_release_group(self, musicbrainz_id):
             return {

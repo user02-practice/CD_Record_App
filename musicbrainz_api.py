@@ -316,3 +316,16 @@ class MusicBrainzAPI:
             return None
 
         return label.get("name")
+
+    def get_cover_art_url(self, release_id):
+        """
+        Release IDからジャケット画像URLを取得する。
+        """
+
+        if not release_id:
+            return ""
+
+        return (
+            f"https://coverartarchive.org/release/"
+            f"{release_id}/front-500"
+        )
