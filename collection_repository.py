@@ -211,7 +211,7 @@ class CollectionRepository:
             result[10]  # memo
         )
 
-    def get_collections(self):
+    def get_collections(self, sort_by=None):
         """
         登録されているコレクションをすべて取得する。
 
@@ -224,8 +224,16 @@ class CollectionRepository:
         # SQLを実行するためのカーソルを作成する
         cursor = self.conn.cursor()
 
+        # 並び替え方法を決める
+        if sort_by == "artist_name":
+            order_by = "artist_name ASC"
+        elif sort_by == "release_name":
+            order_by = "release_name ASC"
+        else:
+            order_by = "created_at DESC, id DESC"
+
         # コレクションをすべて取得する
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT
                 musicbrainz_id,
                 artist_name,
@@ -239,7 +247,7 @@ class CollectionRepository:
                 vinyl_owned,
                 memo
             FROM collections
-            ORDER BY created_at DESC, id DESC
+            ORDER BY {order_by}
         """)
 
         # 検索結果をすべて取得する

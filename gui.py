@@ -187,12 +187,12 @@ class MainWindow:
         # コレクション並び替え
         # ========================================
 
-        # 並び替え方法を選択する
         self.collection_sort = ttk.Combobox(
             self.root,
             values=[
                 "登録日時の新しい順",
-                "アーティスト名順"
+                "アーティスト名順",
+                "アルバム名順"
             ],
             state="readonly"
         )
@@ -256,7 +256,15 @@ class MainWindow:
 
         # アーティスト名順
         elif sort_value == "アーティスト名順":
-            collections = self.repository.get_collections_sorted_by_artist()
+            collections = self.repository.get_collections(
+                sort_by="artist_name"
+            )
+
+        # アルバム名順
+        elif sort_value == "アルバム名順":
+            collections = self.repository.get_collections(
+                sort_by="release_name"
+            )
 
         else:
             collections = self.repository.get_collections()

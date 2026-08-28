@@ -1654,3 +1654,113 @@ def test_collections_can_be_searched_by_album_only():
     assert len(results) == 1
     assert results[0][0] == "test-001"
     assert results[0][2] == "Queen Tribute"
+
+def test_collections_can_be_sorted_by_artist_name():
+    """
+    コレクションをアーティスト名の昇順で取得できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Beatles",
+        release_name="Abbey Road",
+        label="Apple",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：アーティスト名の昇順で取得する
+    # ========================================
+
+    results = repository.get_collections(
+        sort_by="artist_name"
+    )
+
+    # ========================================
+    # 確認：アーティスト名順になっている
+    # ========================================
+
+    assert len(results) == 2
+    assert results[0][1] == "Beatles"
+    assert results[1][1] == "Queen"
+
+def test_collections_can_be_sorted_by_album_name():
+    """
+    コレクションをアルバム名の昇順で取得できることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="A Night at the Opera",
+        label="EMI",
+        release_date="1975-11-21",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # 実行：アルバム名の昇順で取得する
+    # ========================================
+
+    results = repository.get_collections(
+        sort_by="release_name"
+    )
+
+    # ========================================
+    # 確認：アルバム名順になっている
+    # ========================================
+
+    assert len(results) == 2
+    assert results[0][2] == "A Night at the Opera"
+    assert results[1][2] == "News of the World"

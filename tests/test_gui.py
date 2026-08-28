@@ -2833,6 +2833,94 @@ def test_collection_list_can_be_sorted_by_artist_name(root):
     assert "Queen" in items[1]
     assert "The Beatles" in items[2]
 
+def test_collection_list_can_be_sorted_by_album_name(root):
+    """
+    コレクション画面で「アルバム名順」を選択したとき、
+    アルバム名の昇順で一覧表示されることを確認する。
+    """
+
+    # ========================================
+    # 準備：テスト用のRepositoryを作成する
+    # ========================================
+
+    repository = CollectionRepository(":memory:")
+
+    repository.add_collection(
+        musicbrainz_id="test-001",
+        artist_name="Queen",
+        release_name="News of the World",
+        label="EMI",
+        release_date="1977-10-28",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-002",
+        artist_name="The Beatles",
+        release_name="Abbey Road",
+        label="Apple",
+        release_date="1969-09-26",
+        country="GB",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    repository.add_collection(
+        musicbrainz_id="test-003",
+        artist_name="ABBA",
+        release_name="Arrival",
+        label="Polar",
+        release_date="1976-10-11",
+        country="SE",
+        formats=["CD"],
+        jacket_url=None,
+        cd_owned=1,
+        vinyl_owned=0,
+        memo=""
+    )
+
+    # ========================================
+    # GUIを作成する
+    # ========================================
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    # ========================================
+    # 実行：アルバム名順を選択する
+    # ========================================
+
+    window.collection_sort.set(
+        "アルバム名順"
+    )
+
+    window.on_collection_sort_changed()
+
+    # ========================================
+    # 確認：アルバム名の昇順で表示される
+    # ========================================
+
+    items = window.collection_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 3
+
+    assert "Abbey Road" in items[0]
+    assert "Arrival" in items[1]
+    assert "News of the World" in items[2]
+
 def test_collection_list_can_be_sorted_by_newest(root):
     """
     コレクション画面で「登録日時の新しい順」を選択したとき、
