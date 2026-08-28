@@ -507,6 +507,11 @@ class MainWindow:
         # MusicBrainz IDを取得する
         musicbrainz_id = result.get("id")
 
+        # アルバム検索以外の結果は
+        # Release Groupの詳細取得を行わない
+        if self.search_target.get() != "アルバム":
+            return
+
         try:
             release_group = api.get_release_group(
                 musicbrainz_id

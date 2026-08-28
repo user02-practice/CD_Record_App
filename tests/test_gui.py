@@ -3598,3 +3598,50 @@ def test_selected_collection_matches_sorted_list(root):
 
     assert collection[1] == "ABBA"
     assert collection[2] == "Arrival"
+
+def test_artist_search_result_does_not_request_release_group(root, monkeypatch):
+    """
+    アーティスト検索結果を選択したときに、
+    アーティストIDをRelease Groupとして取得しないことを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_artist(self, artist_name):
+            return {
+                "artists": [
+                    {
+                        "id": "artist-001",
+                        "name": "Queen"
+                    }
+                ]
+            }
+
+        def get_release_group(self, musicbrainz_id):
+            raise AssertionError(
+                "アーティストIDでget_release_groupが呼ばれています"
+            )
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アーティスト")
+    window.search_entry.insert(
+        0,
+        "Queen"
+    )
+
+    window.search()
+
+    window.result_listbox.selection_set(0)
+
+    window.on_result_selected(None)
