@@ -1438,6 +1438,11 @@ def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
                 ]
             }
 
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
+            }
+
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
         FakeMusicBrainzAPI
@@ -1491,6 +1496,8 @@ def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
     assert "Queen" in detail_text
 
 
+
+
 def test_selected_album_search_result_displays_release_date(root, monkeypatch):
     """
     アルバム検索結果から作品を選択すると、
@@ -1509,6 +1516,11 @@ def test_selected_album_search_result_displays_release_date(root, monkeypatch):
                         "title": "A Night at the Opera"
                     }
                 ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
             }
 
         def get_release_group(self, musicbrainz_id):
@@ -1583,7 +1595,11 @@ def test_selected_album_search_result_displays_format(root, monkeypatch):
                     {
                         "name": "Queen"
                     }
-                ],
+                ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
                 "releases": [
                     {
                         "title": "A Night at the Opera",
@@ -1643,6 +1659,30 @@ def test_selected_album_search_result_displays_label(root, monkeypatch):
                     {
                         "id": "release-group-001",
                         "title": "A Night at the Opera"
+                    }
+                ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": [
+                    {
+                        "title": "A Night at the Opera",
+                        "media": [
+                            {
+                                "format": "CD"
+                            },
+                            {
+                                "format": "Vinyl"
+                            }
+                        ],
+                        "label-info": [
+                            {
+                                "label": {
+                                    "name": "EMI"
+                                }
+                            }
+                        ]
                     }
                 ]
             }
@@ -1728,6 +1768,31 @@ def test_selected_album_search_result_displays_country(root, monkeypatch):
                 ]
             }
 
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": [
+                    {
+                        "title": "A Night at the Opera",
+                        "country": "GB",
+                        "media": [
+                            {
+                                "format": "CD"
+                            },
+                            {
+                                "format": "Vinyl"
+                            }
+                        ],
+                        "label-info": [
+                            {
+                                "label": {
+                                    "name": "EMI"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+
         def get_release_group(self, musicbrainz_id):
             assert musicbrainz_id == "release-group-001"
 
@@ -1808,6 +1873,11 @@ def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
                         "title": "A Night at the Opera"
                     }
                 ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
             }
 
         def get_release_group(self, musicbrainz_id):
@@ -1935,6 +2005,11 @@ def test_selected_album_search_result_has_collection_register_button(
                         "title": "A Night at the Opera"
                     }
                 ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
             }
 
         def get_release_group(self, musicbrainz_id):
@@ -2100,6 +2175,11 @@ def test_collection_register_button_registers_selected_album(
                 ]
             }
 
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
+            }
+
         def get_release_group(self, musicbrainz_id):
             return {
                 "id": "release-group-001",
@@ -2167,6 +2247,11 @@ def test_collection_register_button_does_not_duplicate_collection(
                         "title": "A Night at the Opera"
                     }
                 ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
             }
 
         def get_release_group(self, musicbrainz_id):
@@ -2250,6 +2335,11 @@ def test_collection_register_button_opens_register_screen(
                         "title": "A Night at the Opera"
                     }
                 ]
+            }
+
+        def get_releases(self, musicbrainz_id):
+            return {
+                "releases": []
             }
 
         def get_release_group(self, musicbrainz_id):
@@ -3645,3 +3735,56 @@ def test_artist_search_result_does_not_request_release_group(root, monkeypatch):
     window.result_listbox.selection_set(0)
 
     window.on_result_selected(None)
+
+def test_album_search_results_display_artist_and_album(root, monkeypatch):
+    """
+    アルバム検索結果に、
+    アーティスト名と作品名の両方が表示されることを確認する。
+    """
+
+    repository = CollectionRepository(":memory:")
+
+    class FakeMusicBrainzAPI:
+
+        def search_release_group(self, album_name):
+            return {
+                "release-groups": [
+                    {
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera",
+                        "artist-credit": [
+                            {
+                                "name": "Queen"
+                            }
+                        ]
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "gui.MusicBrainzAPI",
+        FakeMusicBrainzAPI
+    )
+
+    window = MainWindow(
+        root,
+        repository
+    )
+
+    window.search_target.set("アルバム")
+
+    window.search_entry.insert(
+        0,
+        "A Night at the Opera"
+    )
+
+    window.search()
+
+    items = window.result_listbox.get(
+        0,
+        tk.END
+    )
+
+    assert len(items) == 1
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[0]

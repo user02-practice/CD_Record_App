@@ -103,11 +103,26 @@ class MainWindow:
 
         result_label.pack(pady=20)
 
+        # 検索結果を表示するフレーム
+        result_frame = tk.Frame(self.root)
+        result_frame.pack()
+
         # 検索結果を表示するリスト
         self.result_listbox = tk.Listbox(
-            self.root,
+            result_frame,
             width=70,
             height=20
+        )
+
+        # 縦スクロールバー
+        result_scrollbar = tk.Scrollbar(
+            result_frame,
+            orient=tk.VERTICAL,
+            command=self.result_listbox.yview
+        )
+
+        self.result_listbox.config(
+            yscrollcommand=result_scrollbar.set
         )
 
         self.result_listbox.bind(
@@ -115,7 +130,14 @@ class MainWindow:
             self.on_result_selected
         )
 
-        self.result_listbox.pack()
+        self.result_listbox.pack(
+            side=tk.LEFT
+        )
+
+        result_scrollbar.pack(
+            side=tk.RIGHT,
+            fill=tk.Y
+        )
 
         # ジャケット画像
         self.jacket_image_label = tk.Label(
@@ -356,9 +378,18 @@ class MainWindow:
 
                 # 検索結果を画面に表示する
                 for release_group in release_groups:
+                    artist_credit = release_group.get("artist-credit", [])
+
+                    if artist_credit:
+                        artist_name = artist_credit[0].get("name", "")
+                    else:
+                        artist_name = ""
+
+                    release_name = release_group.get("title", "")
+
                     self.result_listbox.insert(
                         tk.END,
-                        release_group.get("title")
+                        f"{artist_name} - {release_name}"
                     )
 
             # トラック検索
@@ -406,9 +437,18 @@ class MainWindow:
 
                 # Albumの検索結果を表示する
                 for release_group in release_groups:
+                    artist_credit = release_group.get("artist-credit", [])
+
+                    if artist_credit:
+                        artist_name = artist_credit[0].get("name", "")
+                    else:
+                        artist_name = ""
+
+                    release_name = release_group.get("title", "")
+
                     self.result_listbox.insert(
                         tk.END,
-                        release_group.get("title")
+                        f"{artist_name} - {release_name}"
                     )
 
                 # Trackの検索結果を表示する
@@ -517,12 +557,19 @@ class MainWindow:
                 musicbrainz_id
             )
 
+            releases_result = api.get_releases(
+                musicbrainz_id
+            )
+
         except requests.exceptions.RequestException:
             messagebox.showerror(
                 "通信エラー",
                 "MusicBrainzへの接続に失敗しました。"
             )
             return
+
+        # Release一覧を取得する
+        releases = releases_result.get("releases", [])
 
         # アーティスト名を取得する
         artist_credit = release_group.get("artist-credit", [])
@@ -543,7 +590,7 @@ class MainWindow:
         # フォーマットを取得する
         formats = []
 
-        for release in release_group.get("releases", []):
+        for release in releases:
             for media in release.get("media", []):
                 format_name = media.get("format")
 
@@ -555,7 +602,7 @@ class MainWindow:
         # レーベルを取得する
         labels = []
 
-        for release in release_group.get("releases", []):
+        for release in releases:
             for label_info in release.get("label-info", []):
                 label = label_info.get("label")
 
@@ -570,7 +617,7 @@ class MainWindow:
         # 国を取得する
         countries = []
 
-        for release in release_group.get("releases", []):
+        for release in releases:
             country = release.get("country")
 
             if country and country not in countries:

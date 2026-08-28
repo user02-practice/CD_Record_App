@@ -78,7 +78,7 @@ class MusicBrainzAPI:
         params = {
             "query": f'releasegroup:"{release_group_name}"',
             "fmt": "json",
-            "limit": 20
+            "limit": 100
         }
 
         headers = {
@@ -208,7 +208,8 @@ class MusicBrainzAPI:
         url = f"https://musicbrainz.org/ws/2/release-group/{musicbrainz_id}"
 
         params = {
-            "fmt": "json"
+            "fmt": "json",
+            "inc": "artist-credits"
         }
 
         headers = {
@@ -244,7 +245,8 @@ class MusicBrainzAPI:
         params = {
             "release-group": release_group_id,
             "fmt": "json",
-            "limit": 20
+            "limit": 20,
+            "inc": "media+labels"
         }
 
         headers = {
