@@ -5,6 +5,7 @@ from tkinter import ttk, messagebox
 
 from PIL import Image, ImageTk
 from musicbrainz_api import MusicBrainzAPI
+from collection_repository import CollectionRepository
 
 
 class MainWindow:
@@ -43,18 +44,78 @@ class MainWindow:
         メイン画面の部品を作成する。
         """
 
+        # 画面全体をスクロールするためのCanvas
+        canvas = tk.Canvas(self.root)
+        canvas.pack(
+            side=tk.LEFT,
+            fill=tk.BOTH,
+            expand=True
+        )
+
+        # 縦スクロールバー
+        scrollbar = ttk.Scrollbar(
+            self.root,
+            orient=tk.VERTICAL,
+            command=canvas.yview
+        )
+        scrollbar.pack(
+            side=tk.RIGHT,
+            fill=tk.Y
+        )
+
+        canvas.configure(
+            yscrollcommand=scrollbar.set
+        )
+
+        # Canvasの中に実際の部品を置くフレーム
+        main_frame = ttk.Frame(canvas)
+
+        main_window = canvas.create_window(
+            (0, 0),
+            window=main_frame,
+            anchor="nw"
+        )
+
+        # Canvasの幅に合わせてmain_frameの幅を広げる
+        canvas.bind(
+            "<Configure>",
+            lambda event: canvas.itemconfigure(
+                main_window,
+                width=event.width
+            )
+        )
+
+        # 中身の大きさに合わせてスクロール範囲を更新する
+        main_frame.bind(
+            "<Configure>",
+            lambda event: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        # マウスホイールで画面全体をスクロールする
+        def _on_mousewheel(event):
+            canvas.yview_scroll(
+                int(-1 * (event.delta / 120)),
+                "units"
+            )
+
+        canvas.bind_all(
+            "<MouseWheel>",
+            _on_mousewheel
+        )
         # タイトルラベル
         title_label = ttk.Label(
-            self.root,
+            main_frame,
             text="CD・レコード検索・コレクション管理",
             font=("Meiryo", 18)
         )
 
-        title_label.pack(pady=20)
+        title_label.pack(pady=10)
 
         # 検索対象のラベル
         target_label = ttk.Label(
-            self.root,
+            main_frame,
             text="検索対象"
         )
 
@@ -62,7 +123,7 @@ class MainWindow:
 
         # 検索対象の選択
         self.search_target = ttk.Combobox(
-            self.root,
+            main_frame,
             values=[
                 "アーティスト",
                 "アルバム",
@@ -80,7 +141,7 @@ class MainWindow:
 
         # 検索入力欄
         self.search_entry = ttk.Entry(
-            self.root,
+            main_frame,
             width=50
         )
 
@@ -88,7 +149,7 @@ class MainWindow:
 
         # 検索ボタン
         search_button = ttk.Button(
-            self.root,
+            main_frame,
             text="検索",
             command=self.search
         )
@@ -97,21 +158,21 @@ class MainWindow:
 
         # 検索結果のラベル
         result_label = ttk.Label(
-            self.root,
+            main_frame,
             text="検索結果"
         )
 
-        result_label.pack(pady=20)
+        result_label.pack(pady=10)
 
         # 検索結果を表示するフレーム
-        result_frame = tk.Frame(self.root)
+        result_frame = tk.Frame(main_frame)
         result_frame.pack()
 
         # 検索結果を表示するリスト
         self.result_listbox = tk.Listbox(
             result_frame,
             width=70,
-            height=20
+            height=8
         )
 
         # 縦スクロールバー
@@ -141,7 +202,7 @@ class MainWindow:
 
         # ジャケット画像
         self.jacket_image_label = tk.Label(
-            self.root,
+            main_frame,
             text="ジャケット画像"
         )
 
@@ -149,7 +210,7 @@ class MainWindow:
 
         # 作品情報
         self.detail_label = tk.Label(
-            self.root,
+            main_frame,
             text="作品情報"
         )
 
@@ -157,7 +218,7 @@ class MainWindow:
 
         # コレクション登録ボタン
         self.collection_register_button = tk.Button(
-            self.root,
+            main_frame,
             text="コレクションに登録",
             command=self.register_selected_collection
         )
@@ -170,7 +231,7 @@ class MainWindow:
 
         # コレクション検索ラベル
         collection_search_label = ttk.Label(
-            self.root,
+            main_frame,
             text="コレクション検索"
         )
 
@@ -182,7 +243,7 @@ class MainWindow:
 
         # コレクション検索の対象を選択する
         self.collection_search_target = ttk.Combobox(
-            self.root,
+            main_frame,
             values=[
                 "アーティスト",
                 "アルバム",
@@ -199,7 +260,7 @@ class MainWindow:
 
         # コレクション検索入力欄
         self.collection_search_entry = ttk.Entry(
-            self.root,
+            main_frame,
             width=50
         )
 
@@ -210,7 +271,7 @@ class MainWindow:
         # ========================================
 
         self.collection_sort = ttk.Combobox(
-            self.root,
+            main_frame,
             values=[
                 "登録日時の新しい順",
                 "アーティスト名順",
@@ -233,7 +294,7 @@ class MainWindow:
 
         # コレクション所有フィルター
         self.collection_filter = ttk.Combobox(
-            self.root,
+            main_frame,
             values=[
                 "すべて",
                 "CD所有",
@@ -258,7 +319,7 @@ class MainWindow:
 
         # コレクション一覧を表示するリスト
         self.collection_listbox = tk.Listbox(
-            self.root,
+            main_frame,
             width=70,
             height=10
         )
@@ -669,9 +730,18 @@ class MainWindow:
 
         # 詳細情報を取得する
         api = MusicBrainzAPI()
-        release_group = api.get_release_group(
-            musicbrainz_id
-        )
+
+        try:
+            release_group = api.get_release_group(
+                musicbrainz_id
+            )
+        except requests.exceptions.RequestException:
+            messagebox.showerror(
+                "通信エラー",
+                "MusicBrainzへの接続に失敗しました。\n"
+                "しばらくしてからもう一度お試しください。"
+            )
+            return
 
         # アーティスト名を取得する
         artist_credit = release_group.get("artist-credit", [])
@@ -1038,6 +1108,16 @@ class MainWindow:
         # 登録画面で入力されたメモを取得する
         memo = self.memo_entry.get()
 
+        # すでに登録されている作品か確認する
+        if self.repository.get_collection(
+                data["musicbrainz_id"]
+        ) is not None:
+            messagebox.showinfo(
+                "登録済み",
+                "この作品はすでにコレクションに登録されています。"
+            )
+            return
+
         # Repositoryへコレクションを登録する
         self.repository.add_collection(
             musicbrainz_id=data["musicbrainz_id"],
@@ -1230,8 +1310,14 @@ def main():
     # Tkinterのルートウィンドウを作成する
     root = tk.Tk()
 
+    # コレクションRepositoryを作成する
+    repository = CollectionRepository("collection.db")
+
     # メイン画面を作成する
-    MainWindow(root)
+    MainWindow(
+        root,
+        repository=repository
+    )
 
     # Tkinterのイベントループを開始する
     root.mainloop()
