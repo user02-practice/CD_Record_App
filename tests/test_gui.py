@@ -3705,30 +3705,32 @@ def test_selected_collection_matches_sorted_list(root):
     assert collection[1] == "ABBA"
     assert collection[2] == "Arrival"
 
-def test_artist_search_result_does_not_request_release_group(root, monkeypatch):
+def test_artist_search_results_display_artist_and_album(root, monkeypatch):
     """
-    アーティスト検索結果を選択したときに、
-    アーティストIDをRelease Groupとして取得しないことを確認する。
+    アーティスト名で検索すると、
+    そのアーティストの作品一覧が表示されることを確認する。
     """
 
     repository = CollectionRepository(":memory:")
 
     class FakeMusicBrainzAPI:
 
-        def search_artist(self, artist_name):
+        def search_release_group_by_artist(self, artist_name):
+            assert artist_name == "Queen"
+
             return {
-                "artists": [
+                "release-groups": [
                     {
-                        "id": "artist-001",
-                        "name": "Queen"
+                        "id": "release-group-001",
+                        "title": "A Night at the Opera",
+                        "artist-credit": [
+                            {
+                                "name": "Queen"
+                            }
+                        ]
                     }
                 ]
             }
-
-        def get_release_group(self, musicbrainz_id):
-            raise AssertionError(
-                "アーティストIDでget_release_groupが呼ばれています"
-            )
 
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
@@ -3748,10 +3750,12 @@ def test_artist_search_result_does_not_request_release_group(root, monkeypatch):
 
     window.search()
 
-    window.result_listbox.selection_set(0)
+    items = window.result_listbox.get(0, tk.END)
 
-    window.on_result_selected(None)
-
+    assert len(items) == 1
+    assert "Queen" in items[0]
+    assert "A Night at the Opera" in items[0]
+    
 def test_album_search_results_display_artist_and_album(root, monkeypatch):
     """
     アルバム検索結果に、

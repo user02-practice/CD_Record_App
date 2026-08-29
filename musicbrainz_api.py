@@ -105,6 +105,42 @@ class MusicBrainzAPI:
 
         return result
 
+    def search_release_group_by_artist(self, artist_name):
+        """
+        アーティスト名でMusicBrainzのRelease Groupを検索する。
+
+        Args:
+            artist_name (str):
+                検索するアーティスト名。
+
+        Returns:
+            dict:
+                MusicBrainz APIから取得した検索結果。
+        """
+
+        url = "https://musicbrainz.org/ws/2/release-group/"
+
+        params = {
+            "query": f'artist:"{artist_name}"',
+            "fmt": "json",
+            "limit": 100
+        }
+
+        headers = {
+            "User-Agent": "CD-Record-App/1.0"
+        }
+
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=10
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
     def search_track(self, track_name):
         """
         Track名でMusicBrainzのRecordingを検索する。

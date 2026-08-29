@@ -411,20 +411,29 @@ class MainWindow:
         try:
             # アーティスト検索
             if search_target == "アーティスト":
-                result = api.search_artist(keyword)
+                result = api.search_release_group_by_artist(keyword)
 
                 # 検索結果を取得する
-                artists = result.get("artists", [])
-                self.search_results = artists
+                release_groups = result.get("release-groups", [])
+                self.search_results = release_groups
 
                 # 以前の検索結果を削除する
                 self.result_listbox.delete(0, tk.END)
 
                 # 検索結果を画面に表示する
-                for artist in artists:
+                for release_group in release_groups:
+                    artist_credit = release_group.get("artist-credit", [])
+
+                    if artist_credit:
+                        artist_name = artist_credit[0].get("name", "")
+                    else:
+                        artist_name = ""
+
+                    release_name = release_group.get("title", "")
+
                     self.result_listbox.insert(
                         tk.END,
-                        artist.get("name")
+                        f"{artist_name} - {release_name}"
                     )
             # アルバム検索
             elif search_target == "アルバム":
@@ -608,9 +617,12 @@ class MainWindow:
         # MusicBrainz IDを取得する
         musicbrainz_id = result.get("id")
 
-        # アルバム検索以外の結果は
-        # Release Groupの詳細取得を行わない
-        if self.search_target.get() != "アルバム":
+        # アルバム検索・アーティスト検索の場合は
+        # Release Groupの詳細を取得する
+        if self.search_target.get() not in (
+                "アルバム",
+                "アーティスト"
+        ):
             return
 
         try:
