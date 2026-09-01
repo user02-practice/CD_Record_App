@@ -1931,6 +1931,7 @@ def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
         FakeMusicBrainzAPI
     )
 
+
     window = MainWindow(
         root,
         repository
@@ -2302,6 +2303,11 @@ def test_collection_register_button_does_not_duplicate_collection(
     monkeypatch.setattr(
         "gui.MusicBrainzAPI",
         FakeMusicBrainzAPI
+    )
+
+    monkeypatch.setattr(
+        "gui.messagebox.showinfo",
+        lambda *args, **kwargs: None
     )
 
     window = MainWindow(

@@ -528,8 +528,10 @@ class MainWindow:
                         recording.get("title")
                     )
 
-        except requests.exceptions.RequestException:
+
+        except requests.exceptions.RequestException as e:
             print("MusicBrainzへの接続に失敗しました。")
+            print(repr(e))
 
     def show_collections(self):
         """

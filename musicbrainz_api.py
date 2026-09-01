@@ -1,3 +1,4 @@
+import time
 import requests
 
 
@@ -78,7 +79,7 @@ class MusicBrainzAPI:
         params = {
             "query": f'releasegroup:"{release_group_name}"',
             "fmt": "json",
-            "limit": 100
+            "limit": 20
         }
 
         headers = {
@@ -109,13 +110,7 @@ class MusicBrainzAPI:
         """
         アーティスト名でMusicBrainzのRelease Groupを検索する。
 
-        Args:
-            artist_name (str):
-                検索するアーティスト名。
-
-        Returns:
-            dict:
-                MusicBrainz APIから取得した検索結果。
+        503エラーが発生した場合は、1回だけ再試行する。
         """
 
         url = "https://musicbrainz.org/ws/2/release-group/"
@@ -123,23 +118,46 @@ class MusicBrainzAPI:
         params = {
             "query": f'artist:"{artist_name}"',
             "fmt": "json",
-            "limit": 100
+            "limit": 20
         }
 
         headers = {
             "User-Agent": "CD-Record-App/1.0"
         }
 
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            timeout=10
-        )
+        for attempt in range(2):
+            try:
+                response = requests.get(
+                    url,
+                    params=params,
+                    headers=headers,
+                    timeout=10
+                )
 
-        response.raise_for_status()
+                response.raise_for_status()
 
-        return response.json()
+                return response.json()
+
+
+            except requests.HTTPError as e:
+
+                status_code = (
+
+                    e.response.status_code
+
+                    if e.response is not None
+
+                    else None
+
+                )
+
+                if status_code != 503:
+                    raise
+
+                if attempt == 1:
+                    raise
+
+                time.sleep(1)
 
     def search_track(self, track_name):
         """
@@ -186,7 +204,6 @@ class MusicBrainzAPI:
 
         return result
 
-
     def search_keyword(self, keyword):
         """
         キーワードでArtist、Album、Trackを検索する。
@@ -206,10 +223,6 @@ class MusicBrainzAPI:
             "recordings": self.search_track(keyword)["recordings"]
         }
 
-
-
-
-
     def get_release_group_info(self, release_group):
         """
         Release Groupの検索結果から作品情報を取得する。
@@ -228,6 +241,7 @@ class MusicBrainzAPI:
             "artist_name": release_group["artist-credit"][0]["name"],
             "release_name": release_group["title"]
         }
+
     def get_release_group(self, musicbrainz_id):
         """
         MusicBrainz IDを使ってRelease Groupの詳細を取得する。

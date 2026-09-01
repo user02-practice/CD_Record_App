@@ -664,3 +664,76 @@ def test_get_release_group():
     assert result["id"] == musicbrainz_id
     assert result["title"] == "A Night at the Opera"
     assert result["first-release-date"] == "1975-11-21"
+
+def test_search_release_group_by_artist_retries_after_503():
+    """
+    アーティスト検索で503エラーが発生したあと、
+    再試行して成功することを確認する。
+    """
+
+    api = MusicBrainzAPI()
+
+    with patch("musicbrainz_api.requests.get") as mock_get:
+
+        # 1回目は503エラー
+        error_response = Mock()
+
+        error = requests.HTTPError(
+            "503 Server Error"
+        )
+
+        error.response = Mock()
+        error.response.status_code = 503
+
+        error_response.raise_for_status.side_effect = error
+
+        # 2回目は成功
+        success_response = Mock()
+        success_response.raise_for_status.return_value = None
+        success_response.json.return_value = {
+            "release-groups": [
+                {
+                    "title": "Californication"
+                }
+            ]
+        }
+
+        mock_get.side_effect = [
+            error_response,
+            success_response
+        ]
+
+        result = api.search_release_group_by_artist(
+            "Red Hot Chili Peppers"
+        )
+
+    assert result["release-groups"][0]["title"] == "Californication"
+    assert mock_get.call_count == 2
+
+def test_search_release_group_by_artist_does_not_retry_non_503():
+    """
+    503以外のHTTPエラーでは再試行しないことを確認する。
+    """
+
+    api = MusicBrainzAPI()
+
+    with patch("musicbrainz_api.requests.get") as mock_get:
+
+        mock_response = Mock()
+
+        error = requests.HTTPError(
+            "404 Client Error"
+        )
+
+        error.response = Mock()
+        error.response.status_code = 404
+
+        mock_response.raise_for_status.side_effect = error
+        mock_get.return_value = mock_response
+
+        with pytest.raises(requests.HTTPError):
+            api.search_release_group_by_artist(
+                "Red Hot Chili Peppers"
+            )
+
+    assert mock_get.call_count == 1
