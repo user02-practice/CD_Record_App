@@ -1210,7 +1210,7 @@ def test_album_search_results_can_be_displayed(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1255,7 +1255,7 @@ def test_track_search_results_can_be_displayed(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_track(self, track_name):
+        def search_track(self, track_name, offset=0):
             return {
                 "recordings": [
                     {
@@ -1300,7 +1300,7 @@ def test_keyword_search_results_can_be_displayed(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_keyword(self, keyword):
+        def search_keyword(self, keyword, offset=0):
             return {
                 "artists": [
                     {
@@ -1359,7 +1359,7 @@ def test_selected_album_search_result_can_be_retrieved(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1415,7 +1415,7 @@ def test_selected_album_search_result_is_displayed_in_detail(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1508,7 +1508,7 @@ def test_selected_album_search_result_displays_release_date(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1574,7 +1574,7 @@ def test_selected_album_search_result_displays_format(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1656,7 +1656,7 @@ def test_selected_album_search_result_displays_label(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1764,7 +1764,7 @@ def test_selected_album_search_result_displays_country(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1874,7 +1874,7 @@ def test_selected_album_search_result_displays_jacket_url(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1965,7 +1965,7 @@ def test_selected_album_search_result_displays_jacket_image(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -1975,7 +1975,7 @@ def test_selected_album_search_result_displays_jacket_image(root, monkeypatch):
                 ]
             }
 
-        def get_release_group(self, musicbrainz_id):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "id": "release-group-001",
                 "title": "A Night at the Opera",
@@ -2014,7 +2014,7 @@ def test_selected_album_search_result_has_collection_register_button(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -2081,7 +2081,7 @@ def test_collection_register_button_calls_register_method(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -2091,7 +2091,7 @@ def test_collection_register_button_calls_register_method(
                 ]
             }
 
-        def get_release_group(self, musicbrainz_id):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "id": "release-group-001",
                 "title": "A Night at the Opera",
@@ -2133,7 +2133,7 @@ def test_collection_register_button_has_register_command(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -2182,7 +2182,7 @@ def test_collection_register_button_registers_selected_album(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -2256,7 +2256,7 @@ def test_collection_register_button_does_not_duplicate_collection(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -2349,7 +2349,7 @@ def test_collection_register_button_opens_register_screen(
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {
@@ -3721,7 +3721,7 @@ def test_artist_search_results_display_artist_and_album(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group_by_artist(self, artist_name):
+        def search_release_group_by_artist(self, artist_name, offset=0):
             assert artist_name == "Queen"
 
             return {
@@ -3772,7 +3772,7 @@ def test_album_search_results_display_artist_and_album(root, monkeypatch):
 
     class FakeMusicBrainzAPI:
 
-        def search_release_group(self, album_name):
+        def search_release_group(self, album_name, offset=0):
             return {
                 "release-groups": [
                     {

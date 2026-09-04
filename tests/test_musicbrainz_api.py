@@ -469,9 +469,20 @@ def test_search_keyword_calls_all_search_methods():
 
     api.search_keyword("Queen")
 
-    api.search_artist.assert_called_once_with("Queen")
-    api.search_release_group.assert_called_once_with("Queen")
-    api.search_track.assert_called_once_with("Queen")
+    api.search_artist.assert_called_once_with(
+        "Queen",
+        offset=0
+    )
+
+    api.search_release_group.assert_called_once_with(
+        "Queen",
+        offset=0
+    )
+
+    api.search_track.assert_called_once_with(
+        "Queen",
+        offset=0
+    )
 
 @patch("musicbrainz_api.requests.get")
 def test_search_artist_raises_error_when_api_returns_error(mock_get):

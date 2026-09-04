@@ -30,6 +30,12 @@ class MainWindow:
 
         self.search_results = []
 
+        self.total_results = 0
+
+        # 検索結果のページ情報
+        self.current_page = 1
+        self.results_per_page = 20
+
         # ウィンドウのタイトルを設定する
         self.root.title("CD・レコード検索・コレクション管理")
 
@@ -151,7 +157,7 @@ class MainWindow:
         search_button = ttk.Button(
             main_frame,
             text="検索",
-            command=self.search
+            command=self.start_search
         )
 
         search_button.pack()
@@ -198,6 +204,39 @@ class MainWindow:
         result_scrollbar.pack(
             side=tk.RIGHT,
             fill=tk.Y
+        )
+
+        # 検索結果のページ操作
+        page_frame = ttk.Frame(main_frame)
+        page_frame.pack(pady=5)
+
+        self.prev_page_button = ttk.Button(
+            page_frame,
+            text="前へ",
+            command=self.prev_page
+        )
+        self.prev_page_button.pack(
+            side=tk.LEFT,
+            padx=5
+        )
+
+        self.page_label = ttk.Label(
+            page_frame,
+            text="1ページ目"
+        )
+        self.page_label.pack(
+            side=tk.LEFT,
+            padx=5
+        )
+
+        self.next_page_button = ttk.Button(
+            page_frame,
+            text="次へ",
+            command=self.next_page
+        )
+        self.next_page_button.pack(
+            side=tk.LEFT,
+            padx=5
         )
 
         # ジャケット画像
@@ -390,6 +429,42 @@ class MainWindow:
                 f"{artist_name} - {release_name}"
             )
 
+    def start_search(self):
+        """
+        新しい検索を1ページ目から開始する。
+        """
+
+        self.current_page = 1
+        self.search()
+
+    def prev_page(self):
+        """
+        検索結果の前のページを表示する。
+        """
+
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.search()
+
+            self.update_page_buttons()
+
+    def next_page(self):
+        """
+        検索結果の次のページを表示する。
+        """
+
+        next_offset = self.current_page * self.results_per_page
+
+        if next_offset >= self.total_results:
+            return
+
+        previous_page = self.current_page
+
+        self.current_page += 1
+
+        if not self.search():
+            self.current_page = previous_page
+
     def search(self):
         """
         検索ボタンが押されたときの処理。
@@ -401,6 +476,11 @@ class MainWindow:
         # 検索文字を取得する
         keyword = self.search_entry.get()
 
+        # 現在のページからoffsetを計算する
+        offset = (
+            self.current_page - 1
+        ) * self.results_per_page
+
         # 検索文字が空の場合
         if not keyword:
             return
@@ -411,11 +491,17 @@ class MainWindow:
         try:
             # アーティスト検索
             if search_target == "アーティスト":
-                result = api.search_release_group_by_artist(keyword)
+                result = api.search_release_group_by_artist(
+                    keyword,
+                    offset=offset
+                )
 
                 # 検索結果を取得する
                 release_groups = result.get("release-groups", [])
                 self.search_results = release_groups
+
+                # 検索結果の総件数を保存する
+                self.total_results = result.get("count", 0)
 
                 # 以前の検索結果を削除する
                 self.result_listbox.delete(0, tk.END)
@@ -435,13 +521,20 @@ class MainWindow:
                         tk.END,
                         f"{artist_name} - {release_name}"
                     )
+
             # アルバム検索
             elif search_target == "アルバム":
-                result = api.search_release_group(keyword)
+                result = api.search_release_group(
+                    keyword,
+                    offset=offset
+                )
 
                 # 検索結果を取得する
                 release_groups = result.get("release-groups", [])
                 self.search_results = release_groups
+
+                # 検索結果の総件数を保存する
+                self.total_results = result.get("count", 0)
 
                 # 以前の検索結果を削除する
                 self.result_listbox.delete(0, tk.END)
@@ -464,11 +557,16 @@ class MainWindow:
 
             # トラック検索
             elif search_target == "トラック":
-                result = api.search_track(keyword)
+                result = api.search_track(
+                    keyword,
+                    offset=offset
+                )
 
                 # 検索結果を取得する
                 recordings = result.get("recordings", [])
                 self.search_results = recordings
+
+                self.total_results = result.get("count", 0)
 
                 # 以前の検索結果を削除する
                 self.result_listbox.delete(0, tk.END)
@@ -480,32 +578,38 @@ class MainWindow:
                         recording.get("title")
                     )
 
-            # キーワード検索
+                # キーワード検索
             elif search_target == "キーワード":
-                result = api.search_keyword(keyword)
+                result = api.search_keyword(
+                    keyword,
+                    offset=offset
+                )
 
                 # 検索結果を取得する
                 artists = result.get("artists", [])
                 release_groups = result.get("release-groups", [])
                 recordings = result.get("recordings", [])
 
-                self.search_results = (
-                    artists
-                    + release_groups
-                    + recordings
+                self.total_results = max(
+                    result.get("artist_count", 0),
+                    result.get("release_group_count", 0),
+                    result.get("recording_count", 0)
                 )
 
-                # 以前の検索結果を削除する
+                self.search_results = (
+                        artists
+                        + release_groups
+                        + recordings
+                )
+
                 self.result_listbox.delete(0, tk.END)
 
-                # Artistの検索結果を表示する
                 for artist in artists:
                     self.result_listbox.insert(
                         tk.END,
                         artist.get("name")
                     )
 
-                # Albumの検索結果を表示する
                 for release_group in release_groups:
                     artist_credit = release_group.get("artist-credit", [])
 
@@ -521,17 +625,26 @@ class MainWindow:
                         f"{artist_name} - {release_name}"
                     )
 
-                # Trackの検索結果を表示する
                 for recording in recordings:
                     self.result_listbox.insert(
                         tk.END,
                         recording.get("title")
                     )
 
+            # ここからはif / elifの外
+            self.page_label.config(
+                    text=f"{self.current_page}ページ目"
+                )
+
+            self.update_page_buttons()
+
+            return True
 
         except requests.exceptions.RequestException as e:
             print("MusicBrainzへの接続に失敗しました。")
             print(repr(e))
+
+            return False
 
     def show_collections(self):
         """
@@ -1315,6 +1428,25 @@ class MainWindow:
                 text="画像なし"
             )
 
+    def update_page_buttons(self):
+        """
+        現在のページに応じて
+        前へ・次へボタンの状態を更新する。
+        """
+
+        # 1ページ目では「前へ」を押せないようにする
+        if self.current_page <= 1:
+            self.prev_page_button.config(state=tk.DISABLED)
+        else:
+            self.prev_page_button.config(state=tk.NORMAL)
+
+        # 次のページが存在しない場合は「次へ」を押せないようにする
+        next_offset = self.current_page * self.results_per_page
+
+        if next_offset >= self.total_results:
+            self.next_page_button.config(state=tk.DISABLED)
+        else:
+            self.next_page_button.config(state=tk.NORMAL)
 
 def main():
     """

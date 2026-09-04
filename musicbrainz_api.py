@@ -13,7 +13,7 @@ class MusicBrainzAPI:
         """
         pass
 
-    def search_artist(self, artist_name):
+    def search_artist(self, artist_name, offset=0):
         """
         アーティスト名でMusicBrainzを検索する。
 
@@ -31,7 +31,8 @@ class MusicBrainzAPI:
         params = {
             "query": f"artist:{artist_name}",
             "fmt": "json",
-            "limit": 20
+            "limit": 20,
+            "offset": offset
         }
 
         headers = {
@@ -61,7 +62,7 @@ class MusicBrainzAPI:
 
         return result
 
-    def search_release_group(self, release_group_name):
+    def search_release_group(self, release_group_name, offset=0):
         """
         作品名でMusicBrainzのRelease Groupを検索する。
 
@@ -79,7 +80,8 @@ class MusicBrainzAPI:
         params = {
             "query": f'releasegroup:"{release_group_name}"',
             "fmt": "json",
-            "limit": 20
+            "limit": 20,
+            "offset": offset
         }
 
         headers = {
@@ -106,7 +108,7 @@ class MusicBrainzAPI:
 
         return result
 
-    def search_release_group_by_artist(self, artist_name):
+    def search_release_group_by_artist(self, artist_name, offset=0):
         """
         アーティスト名でMusicBrainzのRelease Groupを検索する。
 
@@ -118,7 +120,8 @@ class MusicBrainzAPI:
         params = {
             "query": f'artist:"{artist_name}"',
             "fmt": "json",
-            "limit": 20
+            "limit": 20,
+            "offset": offset
         }
 
         headers = {
@@ -159,7 +162,7 @@ class MusicBrainzAPI:
 
                 time.sleep(1)
 
-    def search_track(self, track_name):
+    def search_track(self, track_name, offset=0):
         """
         Track名でMusicBrainzのRecordingを検索する。
 
@@ -177,7 +180,8 @@ class MusicBrainzAPI:
         params = {
             "query": f'recording:"{track_name}"',
             "fmt": "json",
-            "limit": 20
+            "limit": 20,
+            "offset": offset
         }
 
         headers = {
@@ -204,7 +208,7 @@ class MusicBrainzAPI:
 
         return result
 
-    def search_keyword(self, keyword):
+    def search_keyword(self, keyword, offset=0):
         """
         キーワードでArtist、Album、Trackを検索する。
 
@@ -217,10 +221,30 @@ class MusicBrainzAPI:
                 Artist、Album、Trackの検索結果。
         """
 
+        artist_result = self.search_artist(
+            keyword,
+            offset=offset
+        )
+
+        release_group_result = self.search_release_group(
+            keyword,
+            offset=offset
+        )
+
+        recording_result = self.search_track(
+            keyword,
+            offset=offset
+        )
+
         return {
-            "artists": self.search_artist(keyword)["artists"],
-            "release-groups": self.search_release_group(keyword)["release-groups"],
-            "recordings": self.search_track(keyword)["recordings"]
+            "artists": artist_result["artists"],
+            "artist_count": artist_result.get("count", 0),
+
+            "release-groups": release_group_result["release-groups"],
+            "release_group_count": release_group_result.get("count", 0),
+
+            "recordings": recording_result["recordings"],
+            "recording_count": recording_result.get("count", 0)
         }
 
     def get_release_group_info(self, release_group):
